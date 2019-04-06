@@ -34,7 +34,11 @@ public class Server {
     //存储SelectionKey的队列
     private static List<SelectionKey> writeQueen = new ArrayList<SelectionKey>();
     private static Selector selector = null;
-    public Server(int port) throws IOException {
+    RequestProcessor requestProcessor;
+    ResponseProcessor responeProcessor;
+    public Server(int port,RequestProcessor requestProcessor,ResponseProcessor responeProcessor) throws IOException {
+    	this.requestProcessor = requestProcessor;
+    	this.responeProcessor = responeProcessor;
     	init(port);
     }
     //添加SelectionKey到队列
@@ -49,7 +53,7 @@ public class Server {
     	// 1.创建ServerSocketChannel
         serverSocketChannel = ServerSocketChannel.open();
         // 2.绑定端口
-        serverSocketChannel.bind(new InetSocketAddress(8989));
+        serverSocketChannel.bind(new InetSocketAddress(port));
         // 3.设置为非阻塞
         serverSocketChannel.configureBlocking(false);
         // 4.创建通道选择器
@@ -64,14 +68,16 @@ public class Server {
          *  SelectionKey.OP_READ 读           SelectionKey.OP_WRITE 写
          */
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-        start();
+        start(port);
     }
     public static void main(String[] args) throws IOException {
-    	new Server(8989);
+    	DefaultRequestProcessor defaultRequestProcessor = new DefaultRequestProcessor();
+    	DefaultResponeProcessor defaultResponeProcessor = new DefaultResponeProcessor();
+    	new Server(8989,defaultRequestProcessor,defaultResponeProcessor);
     }
-    void start() throws IOException {
+    void start(int port) throws IOException {
     	while (true) {
-            System.out.println("服务器端：正在监听8989端口");
+            System.out.println("服务器端：正在监听"+port+"端口");
             // 6.获取可用I/O通道,获得有多少可用的通道
             int num = selector.select();
             if (num > 0) { // 判断是否存在可用的通道
@@ -102,12 +108,12 @@ public class Server {
                         //取消读事件的监控
                         key.cancel();
                         //调用读操作工具类
-                        RequestProcessor.ProcessorRequest(key);
+                        requestProcessor.processorRequest(key);
                     } else if (key.isWritable()) {
                         //取消读事件的监控
                         key.cancel();
                         //调用写操作工具类
-                        ResponeProcessor.ProcessorRespone(key);
+                        responeProcessor.processorRespone(key);
                     }
                 }
             }else{

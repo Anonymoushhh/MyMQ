@@ -1,12 +1,18 @@
 package Common;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import Utils.Client;
 
-public class Topic {
+public class Topic implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	//存储结构都为HashSet，一来为了方便去重，二来为了查找快速
 	private HashSet<Integer> queue_num;
 	private HashSet<IpNode> consumer_address;

@@ -6,6 +6,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import Common.Message;
+import Common.Topic;
+
 /**
  *  NIO 客户端
  */
@@ -17,12 +20,16 @@ public class Client {
 	}
     public static void main(String[] args) {
         //使用线程模拟用户 并发访问
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             new Thread(){
                 public void run() {
                     try {
-						Client client = new Client("localhost",8989);
-						System.out.println(client.SyscSend(""+count++));
+						Client client = new Client("127.0.0.1",81);
+						Topic t = new Topic("t1", 1);
+						Message msg = new Message("hh", t, 1);
+						String string = SerializeUtils.serialize(msg);
+						//System.out.println(string);
+						System.out.println(client.SyscSend(string));
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -41,7 +48,7 @@ public class Client {
     	try {
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
-            buffer.put(msg.getBytes());
+            buffer.put(msg.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
             socketChannel.shutdownOutput();  
@@ -54,7 +61,7 @@ public class Client {
     	try {
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
-            buffer.put(msg.getBytes());
+            buffer.put(msg.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
             socketChannel.shutdownOutput();  

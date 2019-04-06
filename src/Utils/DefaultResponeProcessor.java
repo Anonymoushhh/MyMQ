@@ -12,11 +12,11 @@ import java.util.concurrent.Executors;
  * @author MOTUI
  *
  */
-public class ResponeProcessor {
+public class DefaultResponeProcessor implements ResponseProcessor{
     //构造线程池
-    private static ExecutorService executorService = Executors.newFixedThreadPool(1000);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(100);
 
-    public static void ProcessorRespone(final SelectionKey key) {
+    public void processorRespone(final SelectionKey key) {
         //拿到线程并执行
         executorService.submit(new Runnable() {
             @Override

@@ -28,18 +28,18 @@ public class MyQueue {
 	public static void main(String[] args) throws InterruptedException {
 		MyQueue queue = new MyQueue();
 		//使用线程模拟用户 并发访问
-        for (int i = 0; i < 1; i++) {
-            new Thread(){
-                public void run() {
-                	for (int i=0;i<100;i++) {
-                		queue.putAtHeader(new Message("", new Topic(((count++)+""),1)));
-                		if(Math.random()>0.5)
-                			queue.getAndRemoveTail();
-                	}
-                };
-            }.start();
-        }
-        Thread.sleep(1000);
-        queue.getAll();
+//        for (int i = 0; i < 1; i++) {
+//            new Thread(){
+//                public void run() {
+//                	for (int i=0;i<100;i++) {
+//                		queue.putAtHeader(new Message("", new Topic(((count++)+""),1)));
+//                		if(Math.random()>0.5)
+//                			queue.getAndRemoveTail();
+//                	}
+//                };
+//            }.start();
+//        }
+//        Thread.sleep(1000);
+//        queue.getAll();
 	}
 }
