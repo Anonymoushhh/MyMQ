@@ -7,9 +7,10 @@ public class Message {
 	private String message;//消息
 	private int type;//消息类型
 	private int length;//消息长度
+	private Topic topic;//消息主题
 
 	//构造函数
-	public Message(String s) {
+	public Message(String s,Topic topic) {
 		// 默认消息类型为0
 		this.setType(MessageType.ONE_WAY);
 		if(s.length()>9999) {
@@ -20,6 +21,7 @@ public class Message {
 			this.message = s;
 			this.length = s.length();
 		}
+		this.topic = topic;
 	}
 	
 	public Message(String s,int type) {
@@ -62,14 +64,22 @@ public class Message {
 		System.out.println("请输入要发送的数据：");
 		Scanner sc = new Scanner(System.in);
         //利用hasNextXXX()判断是否还有下一输入项
-        while (sc.hasNext()) {
-            //利用nextXXX()方法输出内容
-            String s = sc.next();
-            Message message = new Message(s);
-            String joint = message.getJointMessage();
-            System.out.println(joint);
-        }
+//        while (sc.hasNext()) {
+//            //利用nextXXX()方法输出内容
+//            String s = sc.next();
+//            Message message = new Message(s);
+//            String joint = message.getJointMessage();
+//            System.out.println(joint);
+//        }
 		
+	}
+
+	public Topic getTopic() {
+		return topic;
+	}
+
+	public void setTopic(Topic topic) {
+		this.topic = topic;
 	}
 }
 
