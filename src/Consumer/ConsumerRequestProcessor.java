@@ -1,4 +1,4 @@
-package Broker;
+package Consumer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -15,10 +15,10 @@ import Utils.Server;
  * @author MOTUI
  *
  */
-public class BrokerRequestProcessor implements RequestProcessor{
+public class ConsumerRequestProcessor implements RequestProcessor{
 
     //构造线程池
-    private static ExecutorService executorService = Executors.newFixedThreadPool(1000);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(100);
 
     public void processorRequest(final SelectionKey key){
         //获得线程并执行
@@ -42,6 +42,7 @@ public class BrokerRequestProcessor implements RequestProcessor{
                         }
                     }
                     //System.out.println("服务器端接收到的数据："+ new String(baos.toByteArray()));
+                    
                     //将数据添加到key中
                     key.attach(baos);
                     //将注册写操作添加到队列中

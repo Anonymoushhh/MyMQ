@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import Utils.Client;
 
 public class Topic implements Serializable{
 
@@ -14,22 +13,27 @@ public class Topic implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 	//存储结构都为HashSet，一来为了方便去重，二来为了查找快速
-	private HashSet<Integer> queue_num;
-	private HashSet<IpNode> consumer_address;
+	private HashSet<Integer> queueId;//该Topic在Broker中对应的queueId
+	private HashSet<IpNode> consumer_address;//该Topic对应的cunsumer
 	private HashSet<IpNode> producer_address;
 	private HashSet<IpNode> broker_address;
 //	private HashSet<String> nameserver_address;
-	Client client; 
-	String queue_name;
-	int queueNum;
+//	Client client; 
+	String queue_name;//主题名称
+	int queueNum;//请求队列数
 	public Topic(String s/*主题名称*/,int queueNum) {
 		queue_name = s;
 		this.queueNum = queueNum;
-		queue_num = new HashSet<Integer>();
+		queueId = new HashSet<Integer>();
 		consumer_address = new HashSet<IpNode>();
 		producer_address = new HashSet<IpNode>();
 		broker_address = new HashSet<IpNode>();
 //		nameserver_address = new HashSet<String>();
+	}
+	public Topic(String s/*主题名称*/,HashSet<Integer> queueId,HashSet<IpNode> consumer_address) {
+		queue_name = s;
+		queueId = new HashSet<Integer>();
+		consumer_address = new HashSet<IpNode>();
 	}
 	//HashSet元素转换为线性表
 	private List<IpNode> transform(HashSet<IpNode> set) {
@@ -48,7 +52,7 @@ public class Topic implements Serializable{
 		return queue_name;
 	}
 	public List<Integer> getQueue() {
-		return transformforInteger(queue_num);
+		return transformforInteger(queueId);
 	}
 	public List<IpNode> getConsumer(){
 		return transform(consumer_address);
@@ -56,8 +60,14 @@ public class Topic implements Serializable{
 	public void addConsumer(IpNode ipnode) {
 		consumer_address.add(ipnode);
 	}
+	public void addQueueId(int i) {
+		queueId.add(i);
+	}
 	public List<IpNode> getProducer(){
 		return transform(producer_address);
+	}
+	public int getQueueNum() {
+		return queueNum; 
 	}
 	public List<IpNode> getBroker(){
 		return transform(broker_address);

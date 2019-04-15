@@ -1,6 +1,8 @@
 package Common;
 
-public class IpNode {
+import java.io.Serializable;
+
+public class IpNode implements Serializable{
 	private String ip;
 	private int port;
 	public IpNode(String ip, int port) {

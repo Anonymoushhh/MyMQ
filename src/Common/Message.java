@@ -9,71 +9,84 @@ public class Message implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private int num;
+	private int num;//消息序号
 	private String message;//消息
 	private int type;//消息类型
-	private int length;//消息长度
+//	private int length;//消息长度
 	private Topic topic;//消息主题
 
 	//构造函数
+	public Message() {}
 	public Message(String s,Topic topic,int num) {
-		// 默认消息类型为0
-		this.setType(MessageType.ONE_WAY);
+		// 默认消息类型为1
+		this.setType(MessageType.REPLY_EXPECTED);
 		this.setNum(num);
 		if(s.length()>9999) {
-			this.length = 9999;
+//			this.length = 9999;
 			this.message = s.substring(0, 9999);
 		}
 		else{
 			this.message = s;
-			this.length = s.length();
+//			this.length = s.length();
 		}
 		this.topic = topic;
 	}
-	
-	public Message(String s,int type,Topic topic,int num) {
-		this.type = type;
-		this.topic = topic;
+	//构造函数
+	public Message(String s,int type,int num) {
+		this.setType(type);
 		this.setNum(num);
 		if(s.length()>9999) {
-			this.length = 9999;
+//			this.length = 9999;
 			this.message = s.substring(0, 9999);
 		}
 		else{
 			this.message = s;
-			this.length = s.length();
+//			this.length = s.length();
+		}
+	}
+	public Message(String s,int type,Topic topic,int num) {
+		this.setType(type);
+		this.topic = topic;
+		this.setNum(num);
+		if(s.length()>9999) {
+//			this.length = 9999;
+			this.message = s.substring(0, 9999);
+		}
+		else{
+			this.message = s;
+//			this.length = s.length();
 		}
 		
 	}
 	public String getMessage() {
 		return message;
 	}
-	public String getJointMessage() {
-		System.out.println(this.length);
-		String str_len = String.format("%04d",this.length);
-		String str_type = String.valueOf(this.type);
-		String JointMessage = str_len+str_type+message;
-		//System.out.println(JointMessage);
-		return JointMessage;
-	}
+//	public String getJointMessage() {
+//		System.out.println(this.length);
+//		String str_len = String.format("%04d",this.length);
+//		String str_type = String.valueOf(this.type);
+//		String JointMessage = str_len+str_type+message;
+//		//System.out.println(JointMessage);
+//		return JointMessage;
+//	}
 
 	public int getType() {
 		return type;
 	}
 	public void setType(int type) {
-		if(type==0||type==1||type==2)
+		if(MessageType.contains(type))
 			this.type = type;
-		else
-			System.out.println("设置失败。");
+		else// 默认消息类型为1
+			this.setType(MessageType.REPLY_EXPECTED);
 	}
 
-	public int getLength() {
-		return length;
-	}
-	
+//	public int getLength() {
+//		return length;
+//	}
+//	
 	public static void main(String[] args) {
-		System.out.println("请输入要发送的数据：");
-		Scanner sc = new Scanner(System.in);
+//		System.out.println("请输入要发送的数据：");
+//		Scanner sc = new Scanner(System.in);
         //利用hasNextXXX()判断是否还有下一输入项
 //        while (sc.hasNext()) {
 //            //利用nextXXX()方法输出内容

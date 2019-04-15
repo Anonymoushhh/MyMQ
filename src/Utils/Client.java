@@ -6,7 +6,10 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import Common.IpNode;
 import Common.Message;
+import Common.MessageType;
+import Common.RegisterMessage;
 import Common.Topic;
 
 /**
@@ -14,29 +17,44 @@ import Common.Topic;
  */
 public class Client {
 	SocketChannel socketChannel = null;
-	static int count;
+	volatile static int count;
+	private String ip;
+	private int port;
 	public Client(String ip,int port) throws IOException {
-		init(ip,port);
+		this.ip = ip;
+		this.port = port;
 	}
-    public static void main(String[] args) {
-        //使用线程模拟用户 并发访问
-        for (int i = 0; i < 1; i++) {
-            new Thread(){
-                public void run() {
-                    try {
-						Client client = new Client("127.0.0.1",81);
-						Topic t = new Topic("t1", 1);
-						Message msg = new Message("hh", t, 1);
-						String string = SerializeUtils.serialize(msg);
-						//System.out.println(string);
-						System.out.println(client.SyscSend(string));
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-                };
-            }.start();
-        }
+    public static void main(String[] args) throws IOException {
+    	IpNode ipNode = new IpNode("127.0.0.1", 81);
+		Client client = new Client(ipNode.getIp(), ipNode.getPort());
+		RegisterMessage msg = new RegisterMessage(ipNode, "topic1", 1);
+		System.out.println(client.SyscSend(msg));
+//        //使用线程模拟用户 并发访问
+//        for (int i = 0; i < 1; i++) {
+//            new Thread(){
+//                public void run() {
+//                    try {
+//                    	Client client = new Client("127.0.0.1",8088);
+//						Topic t = new Topic("t1", 15);
+////						synchronized (Client.class) {
+////							t.addQueueId(count);
+////						System.out.println(1);
+////							String string = SerializeUtils.serialize(msg);
+//							for(int i=0;i<10;i++) {
+//								Message msg = new Message("hh",t, count++);
+//								System.out.println(client.SyscSend(msg));
+//							}
+////						}
+//						
+//						//System.out.println(string);
+//						
+//					} catch (IOException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//                };
+//            }.start();
+//        }
     }
     void init(String ip,int port) throws IOException {
     	//1.创建SocketChannel
@@ -44,8 +62,9 @@ public class Client {
         //2.连接服务器
         socketChannel.connect(new InetSocketAddress(ip,port));
     }
-    public String SyscSend(String msg){  	
+    public String SyscSend(String msg){  
     	try {
+    		init(ip,port);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
             buffer.put(msg.getBytes("ISO-8859-1"));
@@ -57,11 +76,29 @@ public class Client {
         }
     	return receive();
     }
-    public void Send(String msg){  	
+    //发送对象
+    public String SyscSend(Message msg){  	
     	try {
+    		init(ip,port);
+    		String string = SerializeUtils.serialize(msg);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
-            buffer.put(msg.getBytes("ISO-8859-1"));
+            buffer.put(string.getBytes("ISO-8859-1"));
+            buffer.flip();
+            socketChannel.write(buffer);
+            socketChannel.shutdownOutput();  
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    	return receive();
+    }
+    public void Send(Message msg){  	
+    	try {
+    		init(ip,port);
+    		String string = SerializeUtils.serialize(msg);
+            //写数据
+            ByteBuffer buffer=ByteBuffer.allocate(1024);
+            buffer.put(string.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
             socketChannel.shutdownOutput();  
@@ -71,6 +108,7 @@ public class Client {
     }
     public String receive() {
     	try {
+//    	init(ip,port);
     	//读数据
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ByteBuffer buffer=ByteBuffer.allocate(1024);

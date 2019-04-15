@@ -12,12 +12,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import Broker.Broker;
+import Broker.BrokerResponeProcessor;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,9 +33,16 @@ public class Server {
     private static Selector selector = null;
     RequestProcessor requestProcessor;
     ResponseProcessor responeProcessor;
+    Broker broker;
     public Server(int port,RequestProcessor requestProcessor,ResponseProcessor responeProcessor) throws IOException {
     	this.requestProcessor = requestProcessor;
     	this.responeProcessor = responeProcessor;
+    	init(port);
+    }
+    public Server(int port,RequestProcessor requestProcessor,ResponseProcessor responeProcessor,Broker broker) throws IOException {
+    	this.requestProcessor = requestProcessor;
+    	this.responeProcessor = responeProcessor;
+    	this.broker = broker;
     	init(port);
     }
     //添加SelectionKey到队列
@@ -70,11 +74,11 @@ public class Server {
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
         start(port);
     }
-    public static void main(String[] args) throws IOException {
-    	DefaultRequestProcessor defaultRequestProcessor = new DefaultRequestProcessor();
-    	DefaultResponeProcessor defaultResponeProcessor = new DefaultResponeProcessor();
-    	new Server(8989,defaultRequestProcessor,defaultResponeProcessor);
-    }
+//    public static void main(String[] args) throws IOException {
+//    	DefaultRequestProcessor defaultRequestProcessor = new DefaultRequestProcessor();
+//    	RegisterResponeProcessor defaultResponeProcessor = new RegisterResponeProcessor();
+//    	new Server(15000,defaultRequestProcessor,defaultResponeProcessor);
+//    }
     void start(int port) throws IOException {
     	while (true) {
             System.out.println("服务器端：正在监听"+port+"端口");
@@ -96,7 +100,7 @@ public class Server {
                         ServerSocketChannel ssChannel = (ServerSocketChannel) key.channel();
                         SocketChannel socketChannel = ssChannel.accept();
 
-                        System.out.println("处理请求："+ socketChannel.getRemoteAddress());
+//                        System.out.println("处理请求："+ socketChannel.getRemoteAddress());
 
                         // 获取客户端的数据
                         // 设置非阻塞状态
@@ -113,7 +117,12 @@ public class Server {
                         //取消读事件的监控
                         key.cancel();
                         //调用写操作工具类
-                        responeProcessor.processorRespone(key);
+                        if("Broker.BrokerResponeProcessor".equals(responeProcessor.getClass().getName()))
+                        	responeProcessor.processorRespone(key,broker);
+                        else if("Consumer.ConsumerResponeProcessor".equals(responeProcessor.getClass().getName()))
+                        	responeProcessor.processorRespone(key,port);
+                        else
+                        	responeProcessor.processorRespone(key);
                     }
                 }
             }else{

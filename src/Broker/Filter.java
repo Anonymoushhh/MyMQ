@@ -33,7 +33,8 @@ public class Filter {
 			while(it.hasNext()) {
 				IpNode address = it.next();
 				List<Message> l = map.get(address);
-				l.add(message);
+				if(l!=null)
+					l.add(message);
 			}
 		}
 		return map;
