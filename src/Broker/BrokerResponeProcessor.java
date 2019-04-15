@@ -42,13 +42,13 @@ public class BrokerResponeProcessor implements ResponseProcessor{
                     Message msg = (Message)SerializeUtils.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1")); 
 //                    System.out.println(msg.getMessage());
 //                    System.out.println(msg.getType());
-//                    System.out.println(msg.getNum()+"号消息的count是"+Count);
+//                    System.out.println(msg.getNum()+"号消息");
                     if(msg.getType()==MessageType.REQUEST_QUEUE) {
                     	Integer queueNum = Integer.valueOf(msg.getTopic().getQueueNum());
                     	//需要回复
                     	List<Integer> number = broker.choiceQueue(queueNum);//分配的queueNumber
                     	String message=msg.getNum()+" ACK";
-                    	System.out.println("here");
+//                    	System.out.println("here");
                     	for(Integer i:number)
                     		message += " "+i;
                     	buffer.put(message.getBytes("ISO-8859-1"));
@@ -87,7 +87,7 @@ public class BrokerResponeProcessor implements ResponseProcessor{
     private void addToBroker(Message msg,Broker broker) {
     	List<Integer> list = msg.getTopic().getQueue();
     	for(Integer i:list) {
-    		System.out.println(msg.getNum()+"号消息的count是"+i);
+//    		System.out.println(msg.getNum()+"号消息的count是"+i);
     		broker.add(i, msg);
       }
     }

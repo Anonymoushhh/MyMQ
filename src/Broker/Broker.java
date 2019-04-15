@@ -12,6 +12,7 @@ import javax.imageio.event.IIOReadWarningListener;
 import Common.IpNode;
 import Common.Message;
 import Common.Topic;
+import Consumer.ConsumerFactory;
 import Utils.Client;
 import Utils.DefaultRequestProcessor;
 import Utils.Server;
@@ -78,14 +79,16 @@ public class Broker{
 	//为消费者推送消息
 	public void push() {
 		HashMap<IpNode, List<Message>> map = filter(index,poll(1));
-//		IpNode ipnode = new IpNode("127.0.0.1", 8082);
+//		IpNode ipnode = new IpNode("127.0.0.1", 8888);
 //		for(Message m:map.get(ipnode))
-//			System.out.println(m.getMessage());
+//			System.out.println(m.getType());
+//		System.out.println("here");
 		for(IpNode ip:map.keySet())
 			try {
 				{
 					List<Message> message = map.get(ip);
 					for(Message m:message) {
+//						System.out.println(m.getType());
 						Client client = clients.get(ip);
 //						System.out.println(1);
 						if(client!=null) {
@@ -93,6 +96,7 @@ public class Broker{
 //							System.out.println(2);
 							for(i=0;i<3;i++) {//失败重试三次
 								String ack = client.SyscSend(m);
+//								System.out.println("here");
 								System.out.println(ack);
 								if(ack!=null||"".equals(ack))
 									break;
@@ -117,13 +121,13 @@ public class Broker{
 		int k=0;
 		for(int i=1;i<=queueNum;i++) {
 			MyQueue queue = new MyQueue();
-//			for(int j=1;j<=2;j++) {
-//				Topic t = new Topic("t1", 1);
-//				IpNode ipnode = new IpNode("127.0.0.1", 8888);
-//				t.addConsumer(ipnode);
-//				Message msg = new Message("hh", t, k++);
-//				queue.putAtHeader(msg);				
-//			}
+			for(int j=1;j<=2;j++) {
+				Topic t = new Topic("t1", 1);
+				IpNode ipnode = new IpNode("127.0.0.1", 8888);
+				t.addConsumer(ipnode);
+				Message msg = new Message("hh", t, k++);
+				queue.putAtHeader(msg);				
+			}
 			queueList.put((count++)+"", queue);
 		}
 	}
@@ -167,7 +171,20 @@ public class Broker{
 //			broker.push();
 //			Thread.sleep(2000);
 //		}
-//		
+		new Thread(){
+        public void run() {
+        	while(true) {
+        		try {
+    				Thread.sleep(10000);
+    			} catch (InterruptedException e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
+        		broker.push();
+        	}
+    		
+        };
+}.start();
 //		broker.push();
 //		broker.push();
 		//测试choiceQueue

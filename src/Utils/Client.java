@@ -25,36 +25,36 @@ public class Client {
 		this.port = port;
 	}
     public static void main(String[] args) throws IOException {
-    	IpNode ipNode = new IpNode("127.0.0.1", 81);
-		Client client = new Client(ipNode.getIp(), ipNode.getPort());
-		RegisterMessage msg = new RegisterMessage(ipNode, "topic1", 1);
-		System.out.println(client.SyscSend(msg));
+//    	IpNode ipNode = new IpNode("127.0.0.1", 81);
+//		Client client = new Client(ipNode.getIp(), ipNode.getPort());
+//		RegisterMessage msg = new RegisterMessage(ipNode, "topic1", 1);
+//		System.out.println(client.SyscSend(msg));
 //        //使用线程模拟用户 并发访问
-//        for (int i = 0; i < 1; i++) {
-//            new Thread(){
-//                public void run() {
-//                    try {
-//                    	Client client = new Client("127.0.0.1",8088);
-//						Topic t = new Topic("t1", 15);
-////						synchronized (Client.class) {
-////							t.addQueueId(count);
-////						System.out.println(1);
-////							String string = SerializeUtils.serialize(msg);
-//							for(int i=0;i<10;i++) {
-//								Message msg = new Message("hh",t, count++);
-//								System.out.println(client.SyscSend(msg));
-//							}
-////						}
-//						
-//						//System.out.println(string);
-//						
-//					} catch (IOException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//                };
-//            }.start();
-//        }
+        for (int i = 0; i < 1; i++) {
+            new Thread(){
+                public void run() {
+                    try {
+                    	Client client = new Client("127.0.0.1",8088);
+						Topic t = new Topic("t1", 15);
+//						synchronized (Client.class) {
+//							t.addQueueId(count);
+//						System.out.println(1);
+//							String string = SerializeUtils.serialize(msg);
+							for(int i=0;i<10;i++) {
+								Message msg = new Message("hh",t, count++);
+								System.out.println(client.SyscSend(msg));
+							}
+//						}
+						
+						//System.out.println(string);
+						
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                };
+            }.start();
+        }
     }
     void init(String ip,int port) throws IOException {
     	//1.创建SocketChannel

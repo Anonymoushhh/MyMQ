@@ -119,8 +119,11 @@ public class Server {
                         //调用写操作工具类
                         if("Broker.BrokerResponeProcessor".equals(responeProcessor.getClass().getName()))
                         	responeProcessor.processorRespone(key,broker);
-                        else if("Consumer.ConsumerResponeProcessor".equals(responeProcessor.getClass().getName()))
+                        else if("Consumer.ConsumerResponeProcessor".equals(responeProcessor.getClass().getName())) {
+//                        	System.out.println("here");
                         	responeProcessor.processorRespone(key,port);
+                        }
+                        	
                         else
                         	responeProcessor.processorRespone(key);
                     }

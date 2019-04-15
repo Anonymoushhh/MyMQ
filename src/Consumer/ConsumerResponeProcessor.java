@@ -6,6 +6,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -35,13 +36,14 @@ public class ConsumerResponeProcessor implements ResponseProcessor{
                     //拿到客户端传递的数据
                     ByteArrayOutputStream attachment = (ByteArrayOutputStream)key.attachment();
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    Message msg = (Message)SerializeUtils.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));                    
-                    Queue<Message> list = ConsumerFactory.getList(port);
+                    Message msg = (Message)SerializeUtils.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));    
+                    ConcurrentLinkedQueue<Message> list = ConsumerFactory.getList(port);
+//                    System.out.println(msg.getMessage());
                     list.add(msg);
-                    System.out.println(msg.getType());
+//                    System.out.println("here");
                     if(msg.getType()==MessageType.REPLY_EXPECTED) {
                     	//需要回复
-                    	System.out.println("hehe");
+//                    	System.out.println("hehe");
                     	String message = msg.getNum()+" ACK";
                     	buffer.put(message.getBytes("ISO-8859-1"));
                         buffer.flip();
