@@ -65,14 +65,15 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 		new Thread(){
             public void run() {
             	while(true) {
-            		
             		try {
-						Thread.sleep(10000);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-            		System.out.println(ConsumerFactory.getMessage(8888).getMessage());
+            		Message m = ConsumerFactory.getMessage(8888);
+            		if(m!=null) 
+        				System.out.println(m.getMessage());
             	}
                 };
 		}.start();

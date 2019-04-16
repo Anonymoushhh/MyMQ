@@ -20,6 +20,7 @@ import Utils.Server;
 public class Broker{
 	
 	private int count = 0;
+	private static int push_Time = 1000;//push时间默认一秒一次
 	private ConcurrentHashMap<String,MyQueue> queueList;
 	private Filter filter;//过滤器
 	List<IpNode> index;//消费者地址
@@ -70,6 +71,10 @@ public class Broker{
 //    		clients.put(ip,client);
 //        }
 	}
+	//设置push时间间隔
+	public void setPushTime(int time) {
+		push_Time = time;
+	}
 	//添加消费者
 	public void addConsumer(IpNode ipNode) throws IOException {
 		index.add(ipNode);
@@ -77,7 +82,7 @@ public class Broker{
 		clients.put(ipNode,client);
 	}
 	//为消费者推送消息
-	public void push() {
+	private void pushMessage() {
 		HashMap<IpNode, List<Message>> map = filter(index,poll(1));
 //		IpNode ipnode = new IpNode("127.0.0.1", 8888);
 //		for(Message m:map.get(ipnode))
@@ -97,7 +102,7 @@ public class Broker{
 							for(i=0;i<3;i++) {//失败重试三次
 								String ack = client.SyscSend(m);
 //								System.out.println("here");
-								System.out.println(ack);
+								//System.out.println(ack);
 								if(ack!=null||"".equals(ack))
 									break;
 							}
@@ -117,17 +122,35 @@ public class Broker{
 				e.printStackTrace();
 			}
 	}
+	//push模式
+	public void push() {
+		new Thread(){
+	        public void run() {
+	        	while(true) {
+	        		try {
+	    				Thread.sleep(push_Time);
+	    			} catch (InterruptedException e) {
+	    				// TODO Auto-generated catch block
+	    				e.printStackTrace();
+	    			}
+	        		pushMessage();
+	        	}
+	    		
+	        };
+	}.start();
+	}
+	//创建队列
 	private synchronized void createQueue(int queueNum) {
 		int k=0;
 		for(int i=1;i<=queueNum;i++) {
 			MyQueue queue = new MyQueue();
-			for(int j=1;j<=2;j++) {
-				Topic t = new Topic("t1", 1);
-				IpNode ipnode = new IpNode("127.0.0.1", 8888);
-				t.addConsumer(ipnode);
-				Message msg = new Message("hh", t, k++);
-				queue.putAtHeader(msg);				
-			}
+//			for(int j=1;j<=2;j++) {
+//				Topic t = new Topic("t1", 1);
+//				IpNode ipnode = new IpNode("127.0.0.1", 8888);
+//				t.addConsumer(ipnode);
+//				Message msg = new Message("hh", t, k++);
+//				queue.putAtHeader(msg);				
+//			}
 			queueList.put((count++)+"", queue);
 		}
 	}
@@ -137,10 +160,12 @@ public class Broker{
 			createQueue(queueNum-queueList.size());
 		return LoadBalancer.balance(queueList, queueNum);
 	}
+	//将消息添加到某个队列中
 	public synchronized void add(int queueNumber,Message value) {
 		MyQueue queue = queueList.get(queueNumber+"");
 		queue.putAtHeader(value);
 	}
+	//队列出队，所有队列均出队一个元素
 	public synchronized List<Message> poll(int num/*设置拉取轮数*/) {
 		ArrayList<Message> list = new ArrayList<Message>();
 		for(int i=0;i<num;i++) {
@@ -152,6 +177,7 @@ public class Broker{
 		}
 		return list;
 	}
+	//过滤
 	public HashMap<IpNode, List<Message>> filter(List<IpNode> index,List<Message> list){
 		filter = new Filter(index);
 		return filter.filter(list);
@@ -160,7 +186,9 @@ public class Broker{
 //		IpNode ipnode = new IpNode("127.0.0.1", 8088);
 //		List<IpNode> list = new ArrayList<IpNode>();
 //		list.add(ipnode);
-		Broker broker = new Broker(81);
+		Broker broker;
+			broker = new Broker(81);
+			broker.push();
 //		broker.createQueue(10);
 //		Topic t = new Topic("t1", 1);
 //		Message msg = new Message("hh", t, 0);
@@ -171,20 +199,7 @@ public class Broker{
 //			broker.push();
 //			Thread.sleep(2000);
 //		}
-		new Thread(){
-        public void run() {
-        	while(true) {
-        		try {
-    				Thread.sleep(10000);
-    			} catch (InterruptedException e) {
-    				// TODO Auto-generated catch block
-    				e.printStackTrace();
-    			}
-        		broker.push();
-        	}
-    		
-        };
-}.start();
+
 //		broker.push();
 //		broker.push();
 		//测试choiceQueue

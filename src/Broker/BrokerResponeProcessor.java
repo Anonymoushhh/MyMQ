@@ -24,7 +24,7 @@ import Utils.SerializeUtils;
  */
 public class BrokerResponeProcessor implements ResponseProcessor{
     //构造线程池
-    private static ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(10000);
 //    private static volatile int Count =0;
     public void processorRespone(final SelectionKey key,Broker broker) {
         //拿到线程并执行

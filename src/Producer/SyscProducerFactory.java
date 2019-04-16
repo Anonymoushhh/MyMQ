@@ -82,19 +82,21 @@ public class SyscProducerFactory extends AbstractProducerFactory{
 		SequenceUtil Sequence = new SequenceUtil();
 		new Thread(){
             public void run() {
-            	Topic topic = SyscProducerFactory.RequestQueue(new Topic("hh",10), "127.0.0.1", 81);
-            	while(true) {
+            	Topic topic = SyscProducerFactory.RequestQueue(new Topic("hh",1), "127.0.0.1", 81);
+            	topic.addConsumer(new IpNode("127.0.0.1", 8888));
+//            	while(true) {
             		try {
-						Thread.sleep(1000);
+						Thread.sleep(5000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
             		for(int i=0;i<10;i++) {
-            			Message msg = new Message("hh"+Sequence.getSequence(),topic, Sequence.getSequence());
+            			int num = Sequence.getSequence();
+            			Message msg = new Message("hh"+num,topic, num);
             			System.out.println(SyscProducerFactory.Send(msg, "127.0.0.1", 81));
             		}
-            	}
+//            	}
             		
                 };
 		}.start();

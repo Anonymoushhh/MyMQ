@@ -22,7 +22,7 @@ import Utils.SerializeUtils;
  */
 public class ConsumerResponeProcessor implements ResponseProcessor{
     //构造线程池
-    private static ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(10000);
 
     public void processorRespone(final SelectionKey key,int port) {
         //拿到线程并执行

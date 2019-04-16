@@ -28,7 +28,7 @@ public class MyQueue {
 	public void getAll() {
 		Iterator<Message> iterator = queue.iterator();
 		while(iterator.hasNext()){
-			System.out.print(iterator.next().getTopic().getQueueName()+" ");
+			System.out.print(iterator.next().getMessage()+" ");
 		}
 		System.out.println();
 	}

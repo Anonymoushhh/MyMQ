@@ -81,7 +81,7 @@ public class Server {
 //    }
     void start(int port) throws IOException {
     	while (true) {
-            System.out.println("服务器端：正在监听"+port+"端口");
+            //System.out.println("服务器端：正在监听"+port+"端口");
             // 6.获取可用I/O通道,获得有多少可用的通道
             int num = selector.select();
             if (num > 0) { // 判断是否存在可用的通道

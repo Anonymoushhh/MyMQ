@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 public class DefaultRequestProcessor implements RequestProcessor{
 
     //构造线程池
-    private static ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(10000);
 
     public void processorRequest(final SelectionKey key){
         //获得线程并执行
