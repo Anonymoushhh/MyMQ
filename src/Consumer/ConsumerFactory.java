@@ -12,6 +12,7 @@ import Broker.BrokerResponeProcessor;
 import Common.IpNode;
 import Common.Message;
 import Common.MessageType;
+import Common.PullMessage;
 import Common.RegisterMessage;
 import Utils.Client;
 import Utils.DefaultRequestProcessor;
@@ -26,6 +27,7 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 		ConsumerResponeProcessor consumerResponeProcessor = new ConsumerResponeProcessor();
 		new Thread(){
             public void run() {
+            	System.out.println("Consumer在本地端口"+port+"监听...");
             	try {
 					new Server(port,defaultRequestProcessor,consumerResponeProcessor);
 				} catch (IOException e) {
@@ -37,10 +39,17 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 		
 	}
 	//向Broker注册
-	private static void register(IpNode ipNode1,IpNode ipNode2) throws IOException {
-		Client client = new Client(ipNode1.getIp(), ipNode1.getPort());
-		RegisterMessage msg = new RegisterMessage(ipNode2, "topic1", 1);
-		System.out.println(client.SyscSend(msg));
+	private static void register(IpNode ipNode1,IpNode ipNode2){
+		System.out.println("正在注册Consumer...");
+		Client client;
+		try {
+			client = new Client(ipNode1.getIp(), ipNode1.getPort());
+			RegisterMessage msg = new RegisterMessage(ipNode2, "register", 1);
+			System.out.println(client.SyscSend(msg));
+		} catch (IOException e) {
+			System.out.println("Connection Refuse.");
+		}
+		
 	}
 	public static ConcurrentLinkedQueue<Message> getList(int port){
 		return map.get(port);
@@ -48,6 +57,25 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 	public static Message getMessage(int port) {//为空则返回null
 		return ConsumerFactory.getList(port).poll();
 		
+	}
+	//拉取消息
+	public static void Pull(IpNode ipNode1,IpNode ipNode2) {
+		System.out.println("正在拉取消息...");
+		Client client;
+		try {
+			client = new Client(ipNode1.getIp(), ipNode1.getPort());
+			PullMessage msg = new PullMessage(ipNode2, "pull", 1);
+			String ack = client.SyscSend(msg);
+			if(ack!=null) {
+				Message m = ConsumerFactory.getMessage(8888);
+        		if(m!=null) 
+    				System.out.println(m.getMessage());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+//			e.printStackTrace();
+			System.out.println("Connection Refuse.");
+		}
 	}
 	public static void createConsumer(IpNode ipNode1/*Broker地址*/,IpNode ipNode2/*本地地址*/,int port/*本地监听端口*/) throws IOException {
 		if(map.containsKey(port)) {

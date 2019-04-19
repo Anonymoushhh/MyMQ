@@ -13,6 +13,7 @@ import org.omg.CORBA.PRIVATE_MEMBER;
 
 import Common.Message;
 import Common.MessageType;
+import Common.PullMessage;
 import Common.RegisterMessage;
 import Utils.ResponseProcessor;
 import Utils.SerializeUtils;
@@ -61,17 +62,23 @@ public class BrokerResponeProcessor implements ResponseProcessor{
                     	buffer.put(message.getBytes("ISO-8859-1"));
                         buffer.flip();
                         writeChannel.write(buffer);
+                    }else if(msg.getType()==MessageType.ONE_WAY) {
+                    	addToBroker(msg, broker);//²»»Ø¸´
                     }else if(msg.getType()==MessageType.REGISTER) {
                     	RegisterMessage registerMessage = (RegisterMessage)msg;
                     	broker.addConsumer(registerMessage.getIpNode());
-                    	String message = msg.getNum()+" ACK";
+                    	String message = msg.getMessage()+" ACK";
+                    	buffer.put(message.getBytes("ISO-8859-1"));
+                        buffer.flip();
+                        writeChannel.write(buffer);
+                    }else if(msg.getType()==MessageType.PULL) {
+                    	PullMessage pullMessage = (PullMessage)msg;
+                    	broker.pullMessage(pullMessage.getIpNode());
+                    	String message = msg.getMessage()+" ACK";
                     	buffer.put(message.getBytes("ISO-8859-1"));
                         buffer.flip();
                         writeChannel.write(buffer);
                     }
-                    
-
-                    
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }finally {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.imageio.event.IIOReadWarningListener;
@@ -15,16 +16,21 @@ import Common.Topic;
 import Consumer.ConsumerFactory;
 import Utils.Client;
 import Utils.DefaultRequestProcessor;
+import Utils.SerializeUtils;
 import Utils.Server;
 
 public class Broker{
 	
-	private int count = 0;
+	private static volatile int count = 0;
 	private static int push_Time = 1000;//push时间默认一秒一次
+	private static volatile boolean hasSlave = false;
+	private static int sync_Time = 1000;//sync时间默认一秒一次
+	private static int reTry_Time = 16;//发送失败重试次数
 	private ConcurrentHashMap<String,MyQueue> queueList;
 	private Filter filter;//过滤器
 	List<IpNode> index;//消费者地址
 	Map<IpNode,Client> clients;
+	List<IpNode> slave;
 	public Broker(int port/*,List<IpNode> index*/) throws IOException {
 		init(port);
 	}
@@ -32,7 +38,13 @@ public class Broker{
 		init(port);
 		createQueue(queueNum);
 	}
+	public Broker(int port,List<IpNode> slave) throws IOException {
+		this.slave = slave;
+		hasSlave = true;
+		init(port);
+	}
 	private void init(int port/*,List<IpNode> index*/) throws IOException {
+		System.out.println("Broker已启动，在本地"+port+"端口监听。");
 		//初始化索引
 		index = new ArrayList<IpNode>();
 		//创建客户端集合
@@ -55,6 +67,31 @@ public class Broker{
 				}
             };
         }.start();
+        //slave同步
+        new Thread(){
+          public void run() {
+              	while(true) {
+              		if(hasSlave) {
+              			try {
+							Thread.sleep(sync_Time);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+              			Synchronizer sync = new Synchronizer(queueList, index);
+              			try {
+							String s = SerializeUtils.serialize(sync);
+							for(IpNode ip:slave) {
+								Client client = new Client(ip.getIp(), ip.getPort());
+								client.Send(s);
+							}
+						} catch (IOException e) {
+//							e.printStackTrace();
+							System.out.println("Slave未上线!");
+						}
+              		}
+              	}
+          };
+      }.start();
 //        new Thread(){
 //            public void run() {
 //                try {
@@ -71,9 +108,26 @@ public class Broker{
 //    		clients.put(ip,client);
 //        }
 	}
+	//设置队列内容
+	public void setQueueList(ConcurrentHashMap<String, MyQueue> queueList) {
+		this.queueList = queueList;
+	}
+	//设置同步时间
+	public static void setSync_Time(int sync_Time) {
+		Broker.sync_Time = sync_Time;
+	}
 	//设置push时间间隔
 	public void setPushTime(int time) {
 		push_Time = time;
+	}
+	public void setReTry_Time(int reTry_Time) {
+		Broker.reTry_Time = reTry_Time;
+	}
+	public void getAll() {
+		for(Entry<String, MyQueue> s:queueList.entrySet()) {
+			System.out.print(s.getKey()+" ");
+			s.getValue().getAll();
+		}
 	}
 	//添加消费者
 	public void addConsumer(IpNode ipNode) throws IOException {
@@ -89,7 +143,6 @@ public class Broker{
 //			System.out.println(m.getType());
 //		System.out.println("here");
 		for(IpNode ip:map.keySet())
-			try {
 				{
 					List<Message> message = map.get(ip);
 					for(Message m:message) {
@@ -99,11 +152,16 @@ public class Broker{
 						if(client!=null) {
 							int i=0;
 //							System.out.println(2);
-							for(i=0;i<3;i++) {//失败重试三次
-								String ack = client.SyscSend(m);
+							for(i=0;i<reTry_Time;i++) {//失败重试三次
+								String ack=null;
+								try {
+									ack = client.SyscSend(m);
+								} catch (IOException e) {
+									System.out.println("发送失败！正在重试...");
+								}
 //								System.out.println("here");
 								//System.out.println(ack);
-								if(ack!=null||"".equals(ack))
+								if(ack!=null)
 									break;
 							}
 //							System.out.println(3);
@@ -113,14 +171,9 @@ public class Broker{
 						}else {
 							System.out.println("消费者不存在");
 							//todo 进入死信队列
-						}
-						
+						}					
 					}		
 				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 	}
 	//push模式
 	public void push() {
@@ -139,17 +192,62 @@ public class Broker{
 	        };
 	}.start();
 	}
+	//pull模式
+	public void pullMessage(IpNode ipNode) {
+		List<Message> list = new ArrayList<Message>();
+		//查找队列最外层消息，找到对应ipNode的消息
+		for(MyQueue queue:queueList.values()) {
+			if(queue.getTail()!=null) {
+				List<IpNode> l = queue.getTail().getTopic().getConsumer();
+				if(l.contains(ipNode)&&l.size()==1)//消息消费者只有一个，该消息出队
+					list.add(queue.getAndRemoveTail());
+				else if(l.contains(ipNode)&&l.size()>1) {//消息消费者不止一个，则删除这个消费者，并将该消息推送给它
+					Message m = queue.getTail();
+					m.getTopic().deleteConsumer(ipNode);
+					list.add(m);
+				}
+			}
+		}
+		for(Message m:list) {
+			try {
+				Client client = new Client(ipNode.getIp(), ipNode.getPort());
+				if(client!=null) {
+					int i=0;
+					for(i=0;i<reTry_Time;i++) {//失败重试reTry_Time次
+						String ack=null;
+						try {
+							ack = client.SyscSend(m);
+							System.out.println(ack);
+						} catch (IOException e) {
+							System.out.println("发送失败！正在重试第"+(i+1)+"次...");
+						}
+						if(ack!=null)
+							break;
+					}
+					if(i>=reTry_Time) {
+						//todo 进入死信队列
+					}
+				}
+			} catch (IOException e1) {
+				System.out.println("消费者不存在");
+				//todo进入死信队列
+			}
+							
+		}
+	}
 	//创建队列
 	private synchronized void createQueue(int queueNum) {
 		int k=0;
 		for(int i=1;i<=queueNum;i++) {
 			MyQueue queue = new MyQueue();
-//			for(int j=1;j<=2;j++) {
-//				Topic t = new Topic("t1", 1);
-//				IpNode ipnode = new IpNode("127.0.0.1", 8888);
-//				t.addConsumer(ipnode);
-//				Message msg = new Message("hh", t, k++);
-//				queue.putAtHeader(msg);				
+//			if(slave!=null) {
+//				for(int j=1;j<=2;j++) {
+//					Topic t = new Topic("t1", 1);
+//					IpNode ipnode = new IpNode("127.0.0.1", 8888);
+//					t.addConsumer(ipnode);
+//					Message msg = new Message("hh", t, k++);
+//					queue.putAtHeader(msg);				
+//				}
 //			}
 			queueList.put((count++)+"", queue);
 		}
@@ -170,6 +268,13 @@ public class Broker{
 		ArrayList<Message> list = new ArrayList<Message>();
 		for(int i=0;i<num;i++) {
 			for(MyQueue queue:queueList.values()) {
+				if(queue.getTail()!=null) {
+					List<IpNode> l = queue.getTail().getTopic().getConsumer();
+					for(IpNode j:l) {
+						if(!index.contains(j))
+							return list;
+					}
+				}
 				Message message = queue.getAndRemoveTail();
 				if(message!=null)
 					list.add(message);
@@ -186,9 +291,9 @@ public class Broker{
 //		IpNode ipnode = new IpNode("127.0.0.1", 8088);
 //		List<IpNode> list = new ArrayList<IpNode>();
 //		list.add(ipnode);
-		Broker broker;
-			broker = new Broker(81);
-			broker.push();
+//		Broker broker;
+//			broker = new Broker(81);
+//			broker.push();
 //		broker.createQueue(10);
 //		Topic t = new Topic("t1", 1);
 //		Message msg = new Message("hh", t, 0);

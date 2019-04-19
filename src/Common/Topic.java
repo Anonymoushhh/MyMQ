@@ -60,6 +60,9 @@ public class Topic implements Serializable{
 	public void addConsumer(IpNode ipnode) {
 		consumer_address.add(ipnode);
 	}
+	public void deleteConsumer(IpNode ipnode) {
+		consumer_address.remove(ipnode);
+	}
 	public void addQueueId(int i) {
 		queueId.add(i);
 	}

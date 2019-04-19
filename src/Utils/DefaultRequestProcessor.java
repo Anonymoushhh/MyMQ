@@ -17,7 +17,7 @@ public class DefaultRequestProcessor implements RequestProcessor{
     //构造线程池
     private static ExecutorService executorService = Executors.newFixedThreadPool(10000);
 
-    public void processorRequest(final SelectionKey key){
+    public void processorRequest(final SelectionKey key,Server server){
         //获得线程并执行
         executorService.submit(new Runnable() {
 
@@ -43,7 +43,7 @@ public class DefaultRequestProcessor implements RequestProcessor{
                     //将数据添加到key中
                     key.attach(baos);
                     //将注册写操作添加到队列中
-                    Server.addWriteQueen(key);
+                    server.addWriteQueen(key);
 
                 } catch (IOException e) {
                     e.printStackTrace();

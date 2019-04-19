@@ -50,7 +50,8 @@ public class Client {
 						
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+//						e.printStackTrace();
+						System.out.println("Connection Refuse.");
 					}
                 };
             }.start();
@@ -62,8 +63,7 @@ public class Client {
         //2.连接服务器
         socketChannel.connect(new InetSocketAddress(ip,port));
     }
-    public String SyscSend(String msg){  
-    	try {
+    public String SyscSend(String msg) throws IOException{  
     		init(ip,port);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
@@ -71,40 +71,42 @@ public class Client {
             buffer.flip();
             socketChannel.write(buffer);
             socketChannel.shutdownOutput();  
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        
     	return receive();
+    }
+    public void Send(String msg) throws IOException{  
+    		init(ip,port);
+            //写数据
+            ByteBuffer buffer=ByteBuffer.allocate(1024);
+//            buffer.clear();
+            buffer.put(msg.getBytes("ISO-8859-1"));
+            buffer.flip();
+            socketChannel.write(buffer);
+            socketChannel.shutdownOutput();  
     }
     //发送对象
-    public String SyscSend(Message msg){  	
-    	try {
+    public String SyscSend(Message msg) throws IOException{  	
     		init(ip,port);
     		String string = SerializeUtils.serialize(msg);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
+//            buffer.clear();
             buffer.put(string.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
             socketChannel.shutdownOutput();  
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     	return receive();
     }
-    public void Send(Message msg){  	
-    	try {
+    public void Send(Message msg) throws IOException{  	
     		init(ip,port);
     		String string = SerializeUtils.serialize(msg);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
+//            buffer.clear();
             buffer.put(string.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
             socketChannel.shutdownOutput();  
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
     public String receive() {
     	try {
@@ -125,7 +127,7 @@ public class Client {
         }
         return new String(bos.toByteArray());
     	}catch(IOException e) {
-    		e.printStackTrace();
+    		System.out.println("Connection Refuse.");
     	}
 		return null;
     }

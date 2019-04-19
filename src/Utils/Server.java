@@ -14,6 +14,7 @@ import java.util.Set;
 
 import Broker.Broker;
 import Broker.BrokerResponeProcessor;
+import Broker.Slave;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,11 +30,12 @@ import java.util.Set;
 public class Server {
 	ServerSocketChannel serverSocketChannel = null;
     //存储SelectionKey的队列
-    private static List<SelectionKey> writeQueen = new ArrayList<SelectionKey>();
-    private static Selector selector = null;
+    private  List<SelectionKey> writeQueen = new ArrayList<SelectionKey>();
+    private Selector selector = null;
     RequestProcessor requestProcessor;
     ResponseProcessor responeProcessor;
     Broker broker;
+    Slave slave;
     public Server(int port,RequestProcessor requestProcessor,ResponseProcessor responeProcessor) throws IOException {
     	this.requestProcessor = requestProcessor;
     	this.responeProcessor = responeProcessor;
@@ -45,8 +47,14 @@ public class Server {
     	this.broker = broker;
     	init(port);
     }
+    public Server(int port,RequestProcessor requestProcessor,ResponseProcessor responeProcessor,Slave slave) throws IOException {
+    	this.requestProcessor = requestProcessor;
+    	this.responeProcessor = responeProcessor;
+    	this.slave = slave;
+    	init(port);
+    }
     //添加SelectionKey到队列
-    public static void addWriteQueen(SelectionKey key){
+    public void addWriteQueen(SelectionKey key){
         synchronized (writeQueen) {
             writeQueen.add(key);
             //唤醒主线程
@@ -112,18 +120,17 @@ public class Server {
                         //取消读事件的监控
                         key.cancel();
                         //调用读操作工具类
-                        requestProcessor.processorRequest(key);
+                        requestProcessor.processorRequest(key,this);
                     } else if (key.isWritable()) {
                         //取消读事件的监控
                         key.cancel();
                         //调用写操作工具类
                         if("Broker.BrokerResponeProcessor".equals(responeProcessor.getClass().getName()))
                         	responeProcessor.processorRespone(key,broker);
-                        else if("Consumer.ConsumerResponeProcessor".equals(responeProcessor.getClass().getName())) {
-//                        	System.out.println("here");
+                        else if("Consumer.ConsumerResponeProcessor".equals(responeProcessor.getClass().getName())) 
                         	responeProcessor.processorRespone(key,port);
-                        }
-                        	
+                        else if("Broker.SlaveResponeProcessor".equals(responeProcessor.getClass().getName()))
+                        	responeProcessor.processorRespone(key, slave);
                         else
                         	responeProcessor.processorRespone(key);
                     }

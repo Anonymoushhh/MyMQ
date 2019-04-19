@@ -1,5 +1,6 @@
 package Broker;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +10,7 @@ import Common.Message;
 import Common.Topic;
 import Utils.Client;
 
-public class MyQueue {
+public class MyQueue implements Serializable{
 	volatile static int count = 1;
 	private ConcurrentLinkedDeque<Message> queue;
 
@@ -22,6 +23,9 @@ public class MyQueue {
 	public Message getAndRemoveTail() {
 		return queue.pollLast();
 	}	
+	public Message getTail() {
+		return queue.peekLast();
+	}
 	public int size() {
 		return queue.size();
 	}
