@@ -6,14 +6,14 @@ import Common.IpNode;
 import Common.Message;
 import Consumer.ConsumerFactory;
 
-public class Consumer {
+public class ConsumerTest {
 
 	public static void main(String[] args) {
 		//创建Consumer
 		IpNode ipNode1 = new IpNode("127.0.0.1", 81);
-		IpNode ipNode2 = new IpNode("127.0.0.1", 8888);
+		IpNode ipNode2 = new IpNode("127.0.0.1", 8888);//消费者地址
 		try {
-			ConsumerFactory.createConsumer(ipNode1, ipNode2, 8888);
+			ConsumerFactory.createConsumer(ipNode1, ipNode2);
 		} catch (IOException e1) {
 //			e1.printStackTrace();
 			System.out.println("Broker未上线！");

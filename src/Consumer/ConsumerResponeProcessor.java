@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import Common.Message;
 import Common.MessageType;
 import Utils.ResponseProcessor;
-import Utils.SerializeUtils;
+import Utils.SerializeUtil;
 
 /**
  * 写操作工具类
@@ -36,7 +36,7 @@ public class ConsumerResponeProcessor implements ResponseProcessor{
                     //拿到客户端传递的数据
                     ByteArrayOutputStream attachment = (ByteArrayOutputStream)key.attachment();
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    Message msg = (Message)SerializeUtils.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));    
+                    Message msg = (Message)SerializeUtil.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));    
                     ConcurrentLinkedQueue<Message> list = ConsumerFactory.getList(port);
 //                    System.out.println(msg.getMessage());
                     list.add(msg);

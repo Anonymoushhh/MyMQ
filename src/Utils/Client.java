@@ -30,34 +30,34 @@ public class Client {
 //		RegisterMessage msg = new RegisterMessage(ipNode, "topic1", 1);
 //		System.out.println(client.SyscSend(msg));
 //        //使用线程模拟用户 并发访问
-        for (int i = 0; i < 1; i++) {
-            new Thread(){
-                public void run() {
-                    try {
-                    	Client client = new Client("127.0.0.1",8088);
-						Topic t = new Topic("t1", 15);
-//						synchronized (Client.class) {
-//							t.addQueueId(count);
-//						System.out.println(1);
-//							String string = SerializeUtils.serialize(msg);
-							for(int i=0;i<10;i++) {
-								Message msg = new Message("hh",t, count++);
-								System.out.println(client.SyscSend(msg));
-							}
-//						}
-						
-						//System.out.println(string);
-						
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-//						e.printStackTrace();
-						System.out.println("Connection Refuse.");
-					}
-                };
-            }.start();
-        }
+//        for (int i = 0; i < 1; i++) {
+//            new Thread(){
+//                public void run() {
+//                    try {
+//                    	Client client = new Client("127.0.0.1",8088);
+//						Topic t = new Topic("t1", 15);
+////						synchronized (Client.class) {
+////							t.addQueueId(count);
+////						System.out.println(1);
+////							String string = SerializeUtils.serialize(msg);
+//							for(int i=0;i<10;i++) {
+//								Message msg = new Message("hh",t, count++);
+//								System.out.println(client.SyscSend(msg));
+//							}
+////						}
+//						
+//						//System.out.println(string);
+//						
+//					} catch (IOException e) {
+//						// TODO Auto-generated catch block
+////						e.printStackTrace();
+//						System.out.println("Connection Refuse.");
+//					}
+//                };
+//            }.start();
+//        }
     }
-    void init(String ip,int port) throws IOException {
+    private void init(String ip,int port) throws IOException {
     	//1.创建SocketChannel
 		socketChannel=SocketChannel.open();
         //2.连接服务器
@@ -87,7 +87,7 @@ public class Client {
     //发送对象
     public String SyscSend(Message msg) throws IOException{  	
     		init(ip,port);
-    		String string = SerializeUtils.serialize(msg);
+    		String string = SerializeUtil.serialize(msg);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
 //            buffer.clear();
@@ -99,7 +99,7 @@ public class Client {
     }
     public void Send(Message msg) throws IOException{  	
     		init(ip,port);
-    		String string = SerializeUtils.serialize(msg);
+    		String string = SerializeUtil.serialize(msg);
             //写数据
             ByteBuffer buffer=ByteBuffer.allocate(1024);
 //            buffer.clear();

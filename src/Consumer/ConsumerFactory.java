@@ -19,7 +19,7 @@ import Utils.DefaultRequestProcessor;
 import Utils.ResponseProcessor;
 import Utils.Server;
 
-public class ConsumerFactory extends AbstractConsumerFactory{
+public class ConsumerFactory {
 	private static ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Message>> map = new ConcurrentHashMap<Integer,ConcurrentLinkedQueue<Message>>();
 //在某个端口监听
 	private static void waiting(int port) throws IOException {
@@ -39,7 +39,7 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 		
 	}
 	//向Broker注册
-	private static void register(IpNode ipNode1,IpNode ipNode2){
+	private static void register(IpNode ipNode1/*目的地址*/,IpNode ipNode2/*本地地址*/){
 		System.out.println("正在注册Consumer...");
 		Client client;
 		try {
@@ -59,7 +59,7 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 		
 	}
 	//拉取消息
-	public static void Pull(IpNode ipNode1,IpNode ipNode2) {
+	public static void Pull(IpNode ipNode1/*目的地址*/,IpNode ipNode2/*本地地址*/) {
 		System.out.println("正在拉取消息...");
 		Client client;
 		try {
@@ -67,29 +67,31 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 			PullMessage msg = new PullMessage(ipNode2, "pull", 1);
 			String ack = client.SyscSend(msg);
 			if(ack!=null) {
-				Message m = ConsumerFactory.getMessage(8888);
-        		if(m!=null) 
-    				System.out.println(m.getMessage());
+				Message m = ConsumerFactory.getMessage(ipNode2.getPort());
+        		if(m!=null) {
+        			System.out.println("消息拉取成功！");
+        			System.out.println(m.getMessage());
+        		}else 
+        			System.out.println("消息拉取失败！");
+    				
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
 			System.out.println("Connection Refuse.");
 		}
 	}
-	public static void createConsumer(IpNode ipNode1/*Broker地址*/,IpNode ipNode2/*本地地址*/,int port/*本地监听端口*/) throws IOException {
-		if(map.containsKey(port)) {
+	public static void createConsumer(IpNode ipNode1/*Broker地址*/,IpNode ipNode2/*本地地址*/) throws IOException {
+		if(map.containsKey(ipNode2.getPort())) {
 			System.out.println("端口已被占用!");
 			return;
 		}
 		ConsumerFactory.register(ipNode1,ipNode2);
-		ConsumerFactory.waiting(port);
-		map.put(port, new ConcurrentLinkedQueue<Message>());
+		ConsumerFactory.waiting(ipNode2.getPort());
+		map.put(ipNode2.getPort(), new ConcurrentLinkedQueue<Message>());
 	}
 	public static void main(String[] args) throws IOException, InterruptedException {
 		IpNode ipNode1 = new IpNode("127.0.0.1", 81);
 		IpNode ipNode2 = new IpNode("127.0.0.1", 8888);
-		ConsumerFactory.createConsumer(ipNode1, ipNode2, 8888);
+		ConsumerFactory.createConsumer(ipNode1, ipNode2);
 		new Thread(){
             public void run() {
             	while(true) {
@@ -99,9 +101,10 @@ public class ConsumerFactory extends AbstractConsumerFactory{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-            		Message m = ConsumerFactory.getMessage(8888);
-            		if(m!=null) 
-        				System.out.println(m.getMessage());
+//            		Message m = ConsumerFactory.getMessage(8888);
+//            		if(m!=null) 
+//        				System.out.println(m.getMessage());
+            		ConsumerFactory.Pull(ipNode1,ipNode2);
             	}
                 };
 		}.start();

@@ -16,16 +16,19 @@ import Common.Topic;
 import Consumer.ConsumerFactory;
 import Utils.Client;
 import Utils.DefaultRequestProcessor;
-import Utils.SerializeUtils;
+import Utils.PersistenceUtil;
+import Utils.SerializeUtil;
 import Utils.Server;
 
 public class Broker{
 	
-	private static volatile int count = 0;
-	private static int push_Time = 1000;//push时间默认一秒一次
-	private static volatile boolean hasSlave = false;
-	private static int sync_Time = 1000;//sync时间默认一秒一次
-	private static int reTry_Time = 16;//发送失败重试次数
+	private volatile int count = 0;//记录队列编号
+	private int push_Time = 1000;//push时间默认一秒一次
+	private boolean hasSlave = false;
+	private boolean hasQueueNum = false;
+	private boolean startPersistence = false;
+	private int sync_Time = 1000;//sync时间默认一秒一次
+	private int reTry_Time = 16;//发送失败重试次数
 	private ConcurrentHashMap<String,MyQueue> queueList;
 	private Filter filter;//过滤器
 	List<IpNode> index;//消费者地址
@@ -35,6 +38,7 @@ public class Broker{
 		init(port);
 	}
 	public Broker(int port/*,List<IpNode> index*/,int queueNum) throws IOException {
+		hasQueueNum = true;
 		init(port);
 		createQueue(queueNum);
 	}
@@ -42,6 +46,13 @@ public class Broker{
 		this.slave = slave;
 		hasSlave = true;
 		init(port);
+	}
+	public Broker(int port,int queueNum,List<IpNode> slave) throws IOException {
+		this.slave = slave;
+		hasSlave = true;
+		hasQueueNum = true;
+		init(port);
+		createQueue(queueNum);
 	}
 	private void init(int port/*,List<IpNode> index*/) throws IOException {
 		System.out.println("Broker已启动，在本地"+port+"端口监听。");
@@ -52,7 +63,8 @@ public class Broker{
 		//创建队列库
 		queueList = new ConcurrentHashMap<String,MyQueue>();
 		//默认创建十个队列
-		createQueue(10);
+		if(!hasQueueNum)
+			createQueue(10);
 		//监听生产者
 		DefaultRequestProcessor defaultRequestProcessor = new DefaultRequestProcessor();
 		BrokerResponeProcessor brokerResponeProcessor = new BrokerResponeProcessor();
@@ -79,7 +91,7 @@ public class Broker{
 						}
               			Synchronizer sync = new Synchronizer(queueList, index);
               			try {
-							String s = SerializeUtils.serialize(sync);
+							String s = SerializeUtil.serialize(sync);
 							for(IpNode ip:slave) {
 								Client client = new Client(ip.getIp(), ip.getPort());
 								client.Send(s);
@@ -92,16 +104,18 @@ public class Broker{
               	}
           };
       }.start();
-//        new Thread(){
-//            public void run() {
-//                try {
-//                	new Server(15000,defaultRequestProcessor,registerResponeProcessor);
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//            };
-//        }.start();
+      //持久化
+        new Thread(){
+            public void run() {
+                try {
+                	PersistenceUtil.Export(PersistenceUtil.persistence(broker.queueList),"D://result.json");
+            		ConcurrentHashMap<String,MyQueue> List = PersistenceUtil.Extraction(PersistenceUtil.Import("D://result.json"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            };
+        }.start();
       //为消费者创建连接
 //        for(IpNode ip:this.index) {
 //        	Client client = new Client(ip.getIp(),ip.getPort());
@@ -113,15 +127,15 @@ public class Broker{
 		this.queueList = queueList;
 	}
 	//设置同步时间
-	public static void setSync_Time(int sync_Time) {
-		Broker.sync_Time = sync_Time;
+	public void setSync_Time(int sync_Time) {
+		this.sync_Time = sync_Time;
 	}
 	//设置push时间间隔
 	public void setPushTime(int time) {
 		push_Time = time;
 	}
 	public void setReTry_Time(int reTry_Time) {
-		Broker.reTry_Time = reTry_Time;
+		this.reTry_Time = reTry_Time;
 	}
 	public void getAll() {
 		for(Entry<String, MyQueue> s:queueList.entrySet()) {
@@ -183,7 +197,6 @@ public class Broker{
 	        		try {
 	    				Thread.sleep(push_Time);
 	    			} catch (InterruptedException e) {
-	    				// TODO Auto-generated catch block
 	    				e.printStackTrace();
 	    			}
 	        		pushMessage();
@@ -217,7 +230,7 @@ public class Broker{
 						String ack=null;
 						try {
 							ack = client.SyscSend(m);
-							System.out.println(ack);
+//							System.out.println(ack);
 						} catch (IOException e) {
 							System.out.println("发送失败！正在重试第"+(i+1)+"次...");
 						}
@@ -264,7 +277,7 @@ public class Broker{
 		queue.putAtHeader(value);
 	}
 	//队列出队，所有队列均出队一个元素
-	public synchronized List<Message> poll(int num/*设置拉取轮数*/) {
+	private synchronized List<Message> poll(int num/*设置拉取轮数*/) {
 		ArrayList<Message> list = new ArrayList<Message>();
 		for(int i=0;i<num;i++) {
 			for(MyQueue queue:queueList.values()) {
@@ -283,7 +296,7 @@ public class Broker{
 		return list;
 	}
 	//过滤
-	public HashMap<IpNode, List<Message>> filter(List<IpNode> index,List<Message> list){
+	private HashMap<IpNode, List<Message>> filter(List<IpNode> index,List<Message> list){
 		filter = new Filter(index);
 		return filter.filter(list);
 	}

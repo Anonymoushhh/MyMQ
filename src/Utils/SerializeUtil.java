@@ -9,7 +9,7 @@ import java.io.ObjectOutputStream;
 import Common.Message;
 import Common.Topic;
 
-public class SerializeUtils {
+public class SerializeUtil {
 
     public static String serialize(Object obj) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -30,12 +30,12 @@ public class SerializeUtils {
         return object;
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-    	Topic topic = new Topic("a",1);
-		Message message = new Message("1", topic, 10);
-		String string = SerializeUtils.serialize(message);
-		System.out.println(string);
-		Message msg = (Message)SerializeUtils.serializeToObject(string);
-		Topic t = message.getTopic();
-		System.out.println(t.getQueueName());
+//    	Topic topic = new Topic("a",1);
+//		Message message = new Message("1", topic, 10);
+//		String string = SerializeUtil.serialize(message);
+//		System.out.println(string);
+//		Message msg = (Message)SerializeUtil.serializeToObject(string);
+//		Topic t = message.getTopic();
+//		System.out.println(t.getTopicName());
 	}
 }

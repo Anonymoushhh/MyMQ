@@ -5,9 +5,6 @@ import java.util.Scanner;
 
 public class Message implements Serializable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private int num;//消息序号
 	private String message;//消息

@@ -7,10 +7,10 @@ import java.util.List;
 import Broker.Broker;
 import Common.IpNode;
 
-public class MyBroker {
+public class BrokerTest {
 
 	public static void main(String[] args) {
-		//创建Broker(主从复制)
+//		//创建Broker(主从复制)
 //				try {
 //					IpNode slaveIpNode = new IpNode("127.0.0.1", 83);
 //					List<IpNode> list = new ArrayList<IpNode>();
@@ -23,10 +23,17 @@ public class MyBroker {
 //					e.printStackTrace();
 //				}
 //		//Broker(非主从复制)
+//				try {
+//					Broker broker = new Broker(81);
+//					broker.setPushTime(1000);
+//					broker.push();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+		//Broker(非主从复制,pull模式)
 				try {
 					Broker broker = new Broker(81);
-					broker.setPushTime(1000);
-					broker.push();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

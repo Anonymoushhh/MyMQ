@@ -16,7 +16,7 @@ import Common.MessageType;
 import Common.PullMessage;
 import Common.RegisterMessage;
 import Utils.ResponseProcessor;
-import Utils.SerializeUtils;
+import Utils.SerializeUtil;
 
 /**
  * 写操作工具类
@@ -40,7 +40,7 @@ public class BrokerResponeProcessor implements ResponseProcessor{
                     ByteArrayOutputStream attachment = (ByteArrayOutputStream)key.attachment();
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
                     //System.out.println("服务器收到："+new String(attachment.toByteArray()));
-                    Message msg = (Message)SerializeUtils.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1")); 
+                    Message msg = (Message)SerializeUtil.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1")); 
 //                    System.out.println(msg.getMessage());
 //                    System.out.println(msg.getType());
 //                    System.out.println(msg.getNum()+"号消息");

@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class PullMessage extends Message implements Serializable{
 
+	private static final long serialVersionUID = 1L;
 	private IpNode ipNode;
 	private String message;
 	private int num;

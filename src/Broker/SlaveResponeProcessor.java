@@ -15,7 +15,7 @@ import Common.Message;
 import Common.MessageType;
 import Common.RegisterMessage;
 import Utils.ResponseProcessor;
-import Utils.SerializeUtils;
+import Utils.SerializeUtil;
 
 /**
  * 写操作工具类
@@ -39,7 +39,7 @@ public class SlaveResponeProcessor implements ResponseProcessor{
                     ByteArrayOutputStream attachment = (ByteArrayOutputStream)key.attachment();
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
                     //System.out.println("服务器收到："+new String(attachment.toByteArray()));
-                    Synchronizer sync = (Synchronizer)SerializeUtils.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));
+                    Synchronizer sync = (Synchronizer)SerializeUtil.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));
 //                    System.out.println(sync.getQueueList());
                     slave.Sync(sync);   
                 } catch (IOException | ClassNotFoundException e) {

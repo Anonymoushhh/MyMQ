@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import Common.IpNode;
 
 public class Synchronizer implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 	private ConcurrentHashMap<String,MyQueue> queueList;
 	private List<IpNode> index;//消费者地址
 	public Synchronizer(ConcurrentHashMap<String, MyQueue> queueList, List<IpNode> index) {

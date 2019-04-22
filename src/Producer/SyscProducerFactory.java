@@ -9,8 +9,10 @@ import Common.Topic;
 import Utils.Client;
 import Utils.SequenceUtil;
 
-public class SyscProducerFactory extends AbstractProducerFactory{
+public class SyscProducerFactory {
+	//该生产者是否已申请队列
 	private static ConcurrentHashMap<IpNode, Boolean> requestMap= new ConcurrentHashMap<IpNode, Boolean>();
+	//重试次数
 	private static int reTry_Time = 16;
 	public static void setReTry_Time(int reTry_Time) {
 		SyscProducerFactory.reTry_Time = reTry_Time;
@@ -41,7 +43,7 @@ public class SyscProducerFactory extends AbstractProducerFactory{
 		}
 		return null;
 	}
-	private static String SendQueueRegister(Message msg,String ip,int port) {//未申请队列返回null
+	private static String SendQueueRegister(Message msg,String ip,int port) {//未申请队列成功返回null
 		Client client;
 		if(msg.getType()!=MessageType.REPLY_EXPECTED&&msg.getType()!=MessageType.REQUEST_QUEUE)
 			msg.setType(MessageType.REPLY_EXPECTED);
@@ -56,7 +58,6 @@ public class SyscProducerFactory extends AbstractProducerFactory{
 				}	
 				if("".equals(result))
 					return null;
-				
 			}
 		} catch (IOException e) {
 //			e.printStackTrace();
@@ -70,6 +71,10 @@ public class SyscProducerFactory extends AbstractProducerFactory{
 		Message m = new Message("RequestQueue",MessageType.REQUEST_QUEUE,t, -1);
 //		System.out.println(m.getType());
 		String queue = SyscProducerFactory.SendQueueRegister(m, ip, port);
+		if(queue==null) {
+			System.out.println("申请队列失败！");
+			return t;//返回原topic
+		}
 		String[] l = queue.substring(7).split(" ");
 		for(String i:l)
 			topic.addQueueId(Integer.parseInt(i));
