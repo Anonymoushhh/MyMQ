@@ -66,7 +66,8 @@ public class Client {
     public String SyscSend(String msg) throws IOException{  
     		init(ip,port);
             //写数据
-            ByteBuffer buffer=ByteBuffer.allocate(1024);
+            ByteBuffer buffer=ByteBuffer.allocate(1024*1024);
+            buffer.clear();
             buffer.put(msg.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
@@ -77,8 +78,8 @@ public class Client {
     public void Send(String msg) throws IOException{  
     		init(ip,port);
             //写数据
-            ByteBuffer buffer=ByteBuffer.allocate(1024);
-//            buffer.clear();
+            ByteBuffer buffer=ByteBuffer.allocate(1024*1024);
+            buffer.clear();
             buffer.put(msg.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
@@ -89,8 +90,8 @@ public class Client {
     		init(ip,port);
     		String string = SerializeUtil.serialize(msg);
             //写数据
-            ByteBuffer buffer=ByteBuffer.allocate(1024);
-//            buffer.clear();
+            ByteBuffer buffer=ByteBuffer.allocate(1024*1024);
+            buffer.clear();
             buffer.put(string.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);
@@ -101,8 +102,8 @@ public class Client {
     		init(ip,port);
     		String string = SerializeUtil.serialize(msg);
             //写数据
-            ByteBuffer buffer=ByteBuffer.allocate(1024);
-//            buffer.clear();
+            ByteBuffer buffer=ByteBuffer.allocate(1024*1024);
+            buffer.clear();
             buffer.put(string.getBytes("ISO-8859-1"));
             buffer.flip();
             socketChannel.write(buffer);

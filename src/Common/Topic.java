@@ -12,8 +12,6 @@ public class Topic implements Serializable{
 	//存储结构都为HashSet，一来为了方便去重，二来为了查找快速
 	private HashSet<Integer> queueId;//该Topic在Broker中对应的queueId
 	private HashSet<IpNode> consumer_address;//该Topic对应的cunsumer
-//	private HashSet<String> nameserver_address;
-//	Client client; 
 	String topic_name;//主题名称
 	int queueNum;//请求队列数
 	public Topic(String s/*主题名称*/,int queueNum) {
@@ -21,7 +19,6 @@ public class Topic implements Serializable{
 		this.queueNum = queueNum;
 		queueId = new HashSet<Integer>();
 		consumer_address = new HashSet<IpNode>();
-//		nameserver_address = new HashSet<String>();
 	}
 	public Topic(String s/*主题名称*/,HashSet<Integer> queueId,HashSet<IpNode> consumer_address) {
 		topic_name = s;

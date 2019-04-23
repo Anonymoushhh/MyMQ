@@ -45,7 +45,10 @@ public class ConsumerFactory {
 		try {
 			client = new Client(ipNode1.getIp(), ipNode1.getPort());
 			RegisterMessage msg = new RegisterMessage(ipNode2, "register", 1);
-			System.out.println(client.SyscSend(msg));
+			if(client.SyscSend(msg)!=null)
+				System.out.println("×¢²á³É¹¦!");
+			else
+				System.out.println("×¢²áÊ§°Ü£¡");
 		} catch (IOException e) {
 			System.out.println("Connection Refuse.");
 		}

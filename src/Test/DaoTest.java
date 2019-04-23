@@ -1,19 +1,23 @@
 package Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyStore.Entry;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import Broker.MyQueue;
 import Common.IpNode;
 import Common.Message;
 import Common.Topic;
+import Utils.PersistenceUtil;
 
 public class DaoTest {
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		//测试用例1
 		ConcurrentHashMap<String,MyQueue> queueList1 = new ConcurrentHashMap<String, MyQueue>();
 		int k=0;
@@ -76,5 +80,16 @@ public class DaoTest {
 		//测试用例4
 		//queueList为null
 		//若参数为null或map为空，不执行存储json代码，直接返回
+		
+		IpNode ipNode1 = new IpNode("127.0.0.1", 81);
+		IpNode ipNode2 = new IpNode("127.0.0.1", 8888);//消费者地址
+		List<IpNode> list = new ArrayList<IpNode>();
+		list.add(ipNode1);
+		list.add(ipNode2);
+		String path = new DaoTest().getClass().getResource("").getPath().toString().substring(1);
+		File file = new File(path);
+		String newPath = file.getParentFile().getParent()+"\\ConsumerAddress.json";
+		PersistenceUtil.Export(PersistenceUtil.persistenceConsumer(list),newPath);
+		List<IpNode> list2 = PersistenceUtil.ExtractionConsumer(PersistenceUtil.Import(newPath));	
 	}
 }

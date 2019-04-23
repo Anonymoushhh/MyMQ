@@ -15,14 +15,12 @@ public class ConsumerTest {
 		try {
 			ConsumerFactory.createConsumer(ipNode1, ipNode2);
 		} catch (IOException e1) {
-//			e1.printStackTrace();
 			System.out.println("BrokerŒ¥…œœﬂ£°");
 		}
 		while(true) {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
     		Message m1 = ConsumerFactory.getMessage(8888);

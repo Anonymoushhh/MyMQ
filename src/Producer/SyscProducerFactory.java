@@ -69,7 +69,6 @@ public class SyscProducerFactory {
 		System.out.println("请求向Broker申请队列...");
 		Topic t = topic;
 		Message m = new Message("RequestQueue",MessageType.REQUEST_QUEUE,t, -1);
-//		System.out.println(m.getType());
 		String queue = SyscProducerFactory.SendQueueRegister(m, ip, port);
 		if(queue==null) {
 			System.out.println("申请队列失败！");

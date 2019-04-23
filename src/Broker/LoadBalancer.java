@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LoadBalancer {
 	//找到前queueNum小的队列号
-	public static synchronized List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,int queueNum){
+	public static List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,int queueNum){
 		//此时queueList的size一定大于queueNum
 		List<Integer> list = new ArrayList<>();
 		for(int i=0;i<queueNum;i++) {

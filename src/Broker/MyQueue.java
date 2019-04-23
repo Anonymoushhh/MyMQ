@@ -13,7 +13,7 @@ import Utils.Client;
 public class MyQueue implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	volatile static int count = 1;
+	volatile static int count = 1;//≤‚ ‘
 	private ConcurrentLinkedDeque<Message> queue;
 
 	public MyQueue() {

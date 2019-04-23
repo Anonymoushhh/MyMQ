@@ -38,9 +38,7 @@ public class SlaveResponeProcessor implements ResponseProcessor{
                     //拿到客户端传递的数据
                     ByteArrayOutputStream attachment = (ByteArrayOutputStream)key.attachment();
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    //System.out.println("服务器收到："+new String(attachment.toByteArray()));
                     Synchronizer sync = (Synchronizer)SerializeUtil.serializeToObject(new String(attachment.toByteArray(),"ISO-8859-1"));
-//                    System.out.println(sync.getQueueList());
                     slave.Sync(sync);   
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();

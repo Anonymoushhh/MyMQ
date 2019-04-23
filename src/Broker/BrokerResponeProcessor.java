@@ -49,7 +49,6 @@ public class BrokerResponeProcessor implements ResponseProcessor{
                     	//需要回复
                     	List<Integer> number = broker.choiceQueue(queueNum);//分配的queueNumber
                     	String message=msg.getNum()+" ACK";
-//                    	System.out.println("here");
                     	for(Integer i:number)
                     		message += " "+i;
                     	buffer.put(message.getBytes("ISO-8859-1"));

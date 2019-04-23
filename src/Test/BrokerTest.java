@@ -16,26 +16,27 @@ public class BrokerTest {
 //					List<IpNode> list = new ArrayList<IpNode>();
 //					list.add(slaveIpNode);
 //					Broker broker = new Broker(81,list);
-//					broker.setPushTime(1000);
+//					broker.setPush_Time(1000);
 //					broker.push();
 //				} catch (IOException e) {
-//					// TODO Auto-generated catch block
 //					e.printStackTrace();
 //				}
 //		//Broker(非主从复制)
 //				try {
 //					Broker broker = new Broker(81);
-//					broker.setPushTime(1000);
+//					broker.setPush_Time(1000);
+//					broker.setReTry_Time(16);
+//					broker.setSync_Time(1000);
+//					broker.setStore_Time(1000);
+//					broker.setStartPersistence(true);
 //					broker.push();
 //				} catch (IOException e) {
-//					// TODO Auto-generated catch block
 //					e.printStackTrace();
 //				}
 		//Broker(非主从复制,pull模式)
 				try {
 					Broker broker = new Broker(81);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 	}

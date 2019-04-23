@@ -1,5 +1,6 @@
 package Broker;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,12 +25,13 @@ public class Broker{
 	
 	private volatile int count = 0;//记录队列编号
 	private int push_Time = 1000;//push时间默认一秒一次
-	private boolean hasSlave = false;
-	private boolean hasQueueNum = false;
-	private boolean startPersistence = false;
+	private boolean hasSlave = false;//是否有备份节点
+	private boolean hasQueueNum = false;//是否指定队列数
+	private boolean startPersistence = false;//是否开启持久化
 	private int sync_Time = 1000;//sync时间默认一秒一次
 	private int reTry_Time = 16;//发送失败重试次数
-	private ConcurrentHashMap<String,MyQueue> queueList;
+	private int store_Time = 1000;//刷盘时间间隔
+	private ConcurrentHashMap<String,MyQueue> queueList;//队列列表
 	private Filter filter;//过滤器
 	List<IpNode> index;//消费者地址
 	Map<IpNode,Client> clients;
@@ -97,7 +99,6 @@ public class Broker{
 								client.Send(s);
 							}
 						} catch (IOException e) {
-//							e.printStackTrace();
 							System.out.println("Slave未上线!");
 						}
               		}
@@ -107,33 +108,50 @@ public class Broker{
       //持久化
         new Thread(){
             public void run() {
-                try {
-                	PersistenceUtil.Export(PersistenceUtil.persistence(broker.queueList),"D://result.json");
-            		ConcurrentHashMap<String,MyQueue> List = PersistenceUtil.Extraction(PersistenceUtil.Import("D://result.json"));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+            	while(true) {
+            		if(startPersistence) {
+            			try {
+							Thread.sleep(store_Time);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+            			try {
+            				String path = PersistenceUtil.class.getResource("").getPath().toString().substring(1);
+            				File file = new File(path);
+            				String newPath1 = file.getParentFile().getParent()+"\\QueueList.json";
+            				String newPath2 = file.getParentFile().getParent()+"\\ConsumerAddress.json";
+                        	PersistenceUtil.Export(PersistenceUtil.persistenceQueue(broker.queueList),newPath1);
+                        	PersistenceUtil.Export(PersistenceUtil.persistenceConsumer(broker.index),newPath2);
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+            		}
+            	}
+                
             };
         }.start();
-      //为消费者创建连接
-//        for(IpNode ip:this.index) {
-//        	Client client = new Client(ip.getIp(),ip.getPort());
-//    		clients.put(ip,client);
-//        }
+	}
+	//是否开启持久化
+	public void setStartPersistence(boolean startPersistence) {
+		this.startPersistence = startPersistence;
 	}
 	//设置队列内容
 	public void setQueueList(ConcurrentHashMap<String, MyQueue> queueList) {
 		this.queueList = queueList;
+	}
+	//设置刷盘时间
+	public void setStore_Time(int store_Time) {
+		this.store_Time = store_Time;
 	}
 	//设置同步时间
 	public void setSync_Time(int sync_Time) {
 		this.sync_Time = sync_Time;
 	}
 	//设置push时间间隔
-	public void setPushTime(int time) {
+	public void setPush_Time(int time) {
 		push_Time = time;
 	}
+	//设置重试时间间隔
 	public void setReTry_Time(int reTry_Time) {
 		this.reTry_Time = reTry_Time;
 	}
@@ -143,43 +161,52 @@ public class Broker{
 			s.getValue().getAll();
 		}
 	}
+	//恢复Broker
+	public void recover() {
+		String path = PersistenceUtil.class.getResource("").getPath().toString().substring(1);
+		File file = new File(path);
+		String newPath1 = file.getParentFile().getParent()+"\\QueueList.json";
+		String newPath2 = file.getParentFile().getParent()+"\\ConsumerAddress.json";
+		ConcurrentHashMap<String,MyQueue> queueList = PersistenceUtil.Extraction(PersistenceUtil.Import(newPath1));
+		this.setQueueList(queueList);
+		List<IpNode> address= PersistenceUtil.ExtractionConsumer(PersistenceUtil.Import(newPath2));
+		for(IpNode ipNode:address)
+			addConsumer(ipNode);
+
+	}
 	//添加消费者
-	public void addConsumer(IpNode ipNode) throws IOException {
+	public void addConsumer(IpNode ipNode) {
 		index.add(ipNode);
-		Client client = new Client(ipNode.getIp(),ipNode.getPort());
-		clients.put(ipNode,client);
+		Client client;
+		try {
+			client = new Client(ipNode.getIp(),ipNode.getPort());
+			clients.put(ipNode,client);
+		} catch (IOException e) {
+			System.out.println("Connection Refuse.");
+		}
+		
 	}
 	//为消费者推送消息
 	private void pushMessage() {
 		HashMap<IpNode, List<Message>> map = filter(index,poll(1));
-//		IpNode ipnode = new IpNode("127.0.0.1", 8888);
-//		for(Message m:map.get(ipnode))
-//			System.out.println(m.getType());
-//		System.out.println("here");
 		for(IpNode ip:map.keySet())
 				{
 					List<Message> message = map.get(ip);
 					for(Message m:message) {
-//						System.out.println(m.getType());
 						Client client = clients.get(ip);
-//						System.out.println(1);
 						if(client!=null) {
 							int i=0;
-//							System.out.println(2);
-							for(i=0;i<reTry_Time;i++) {//失败重试三次
+							for(i=0;i<reTry_Time;i++) {//失败重试16次
 								String ack=null;
 								try {
 									ack = client.SyscSend(m);
 								} catch (IOException e) {
 									System.out.println("发送失败！正在重试...");
 								}
-//								System.out.println("here");
-								//System.out.println(ack);
 								if(ack!=null)
 									break;
 							}
-//							System.out.println(3);
-						if(i>=3) {
+						if(i>=reTry_Time) {
 							//todo 进入死信队列
 						}
 						}else {
@@ -230,7 +257,6 @@ public class Broker{
 						String ack=null;
 						try {
 							ack = client.SyscSend(m);
-//							System.out.println(ack);
 						} catch (IOException e) {
 							System.out.println("发送失败！正在重试第"+(i+1)+"次...");
 						}

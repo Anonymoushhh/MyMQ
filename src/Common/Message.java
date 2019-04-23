@@ -9,7 +9,6 @@ public class Message implements Serializable{
 	private int num;//消息序号
 	private String message;//消息
 	private int type;//消息类型
-//	private int length;//消息长度
 	private Topic topic;//消息主题
 
 	//构造函数

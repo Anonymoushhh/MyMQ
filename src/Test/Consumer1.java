@@ -14,15 +14,12 @@ public class Consumer1 {
     	try {
 			ConsumerFactory.createConsumer(ipNode3, ipNode4);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
 			System.out.println("BrokerŒ¥…œœﬂ£°");
 		}
 		while(true) {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(3000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
     		ConsumerFactory.Pull(ipNode3, ipNode4);

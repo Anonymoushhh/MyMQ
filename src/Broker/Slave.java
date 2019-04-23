@@ -42,14 +42,9 @@ public class Slave {
 	public void Sync(Synchronizer synchronizer) {
 		ConcurrentHashMap<String, MyQueue> queueList = synchronizer.getQueueList();
 		broker.setQueueList(queueList);
-		List<IpNode> index = synchronizer.getIndex();
-		for(IpNode ipNode:index) {
-			try {
-				broker.addConsumer(ipNode);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		List<IpNode> index = synchronizer.getIndex();//消费者地址
+		for(IpNode ipNode:index) 
+			broker.addConsumer(ipNode);
 	}
 	public static void main(String[] args) {
 		Slave s = new Slave(83,84);
@@ -57,13 +52,12 @@ public class Slave {
             public void run() {
             	while(true) {
             		try {
-						Thread.sleep(3000);
+						Thread.sleep(5000);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-//            		if(s.broker!=null)
-//                		s.broker.getAll();
+            		if(s.broker!=null)
+                		s.broker.getAll();
             	}
             };
         }.start();

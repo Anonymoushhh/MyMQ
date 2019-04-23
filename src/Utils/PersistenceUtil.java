@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -19,6 +20,7 @@ import Broker.MyQueue;
 import Common.IpNode;
 import Common.Message;
 import Common.Topic;
+import Test.DaoTest;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -26,54 +28,31 @@ import net.sf.json.JSONObject;
 public class PersistenceUtil {
 
 	
-	public static JSONArray persistence(ConcurrentHashMap<String,MyQueue> queueList) {
+	public static JSONArray persistenceQueue(ConcurrentHashMap<String,MyQueue> queueList) {
 		//队列列表
 		JSONArray Queue_List = new JSONArray();
-		
-		
-		
 		Iterator iterator = queueList.keySet().iterator();   
-		MyQueue myqueue = new MyQueue();
-		
+		MyQueue myqueue = new MyQueue();		
 		//遍历broker得到各个队列
 		while (iterator.hasNext()){    
 			//消息列表
-    		JSONArray Message_List = new JSONArray();  
-    		
+    		JSONArray Message_List = new JSONArray();      		
 	        String key = (String) iterator.next(); 
-	        //System.out.println("key:"+key);
-	        
 	        myqueue = queueList.get(key);
-
-	        LinkedList<Message> list = (LinkedList<Message>) myqueue.getReverseAll();
-	        
+	        LinkedList<Message> list = (LinkedList<Message>) myqueue.getReverseAll();        
 	        //遍历每个消息队列，获得消息
 	        Iterator<Message> queue_iterator = list.iterator();
 	        while(queue_iterator.hasNext()) {
 	        	//得到每个消息
-	        	Message message = queue_iterator.next();
-	        	
+	        	Message message = queue_iterator.next();        	
 	        	int number = message.getNum();
 	        	String mes = message.getMessage();
 	        	int type = message.getType();
 	        	Topic topic = message.getTopic();
-	        	
-	        	//测试用
-//	        	System.out.println("消息序号："+number);
-//	        	System.out.println("消息："+mes);
-//	        	System.out.println("消息类型："+type);
-//	        	System.out.println("消息主题："+topic);
-	        	
 	        	//得到每个消息的主题信息
 	        	List<Integer> QueueId = topic.getQueue();
 	        	String QueueName = topic.getTopicName();
 	        	List<IpNode> Consumer = topic.getConsumer();
-	        	
-	        	//测试用
-//	        	System.out.println("该消息的主题所在的队列Id："+QueueId);
-//	        	System.out.println("该消息的主题的名称："+QueueName);
-//	        	System.out.println("该消息的主题的consumer："+Consumer);
-	        	
 	        	//得到每个消息的主题的Ip列表
 	        	Iterator<Integer> QueueId_iterator = QueueId.iterator();
 	        	JSONArray QueueId_List = new JSONArray();
@@ -81,46 +60,37 @@ public class PersistenceUtil {
 	        		Integer integer = QueueId_iterator.next();
 	        		QueueId_List.add(integer);
 	        	}
-	        	//System.out.println(QueueId_List);
-	        	
 	        	//得到每个消息的主题的consumer信息
 	        	Iterator<IpNode> Con_iterator = Consumer.iterator();
 	        	JSONArray Consumer_List = new JSONArray();
 	        	while (Con_iterator.hasNext()) {
 					IpNode ipNode = Con_iterator.next();
 					String ip = ipNode.getIp();
-					int port = ipNode.getPort();
-					
+					int port = ipNode.getPort();					
 					JSONObject IpNode_JSON = new JSONObject();
 					IpNode_JSON.put("ip", ip);
-					IpNode_JSON.put("port", port);
-					
+					IpNode_JSON.put("port", port);					
 					Consumer_List.add(IpNode_JSON);
-				}
-	        	
+				}	        	
 	        	//消息主题json对象
 	        	JSONObject MessageTopic = new JSONObject();
 	        	MessageTopic.put("TopicName", QueueName);
 	        	MessageTopic.put("QueueId_List", QueueId_List);
-	        	MessageTopic.put("Consumer_List", Consumer_List);
-	        	
+	        	MessageTopic.put("Consumer_List", Consumer_List);	        	
 	        	//消息json对象
 	    		JSONObject Message = new JSONObject();
 	    		Message.put("MessageNum", number);
 	    		Message.put("MessageContent", mes);
 	    		Message.put("MessageType", type);
-	    		Message.put("MessageTopic", MessageTopic);
-	    		
+	    		Message.put("MessageTopic", MessageTopic);    		
 	    		Message_List.add(Message);
 	        }
 	        //队列json
     		JSONObject Queue = new JSONObject();
     		Queue.put("QueueName", key);
-    		Queue.put("Message_List", Message_List);
-    		
+    		Queue.put("Message_List", Message_List);  		
     		Queue_List.add(Queue);
 	    }      
-		//System.out.println(JsonFormatTool.formatJson(Queue_List.toString()));
 		return Queue_List;
 	}
 	
@@ -140,7 +110,7 @@ public class PersistenceUtil {
         write.flush();
         write.close();
 
-	    System.out.println("Done");  
+//	    System.out.println("Done");  
 	    
 	    return true;
 	}
@@ -168,16 +138,24 @@ public class PersistenceUtil {
 	    }
 	}
 	
+	public static List<IpNode> ExtractionConsumer(String json){
+		List<IpNode> list = new ArrayList<IpNode>();
+		JSONArray Consumer_List = JSONArray.fromObject(json);
+		Iterator Consumer_List_iterator = Consumer_List.iterator();  
+		while(Consumer_List_iterator.hasNext()) {
+			JSONObject ipNode = (JSONObject) Consumer_List_iterator.next();
+			String ip = ipNode.getString("ip");
+    		int port = ipNode.getInt("port");
+    		list.add(new IpNode(ip, port));
+		}
+		return list;
+	}
 	public static ConcurrentHashMap<String,MyQueue> Extraction(String json) {
 		//队列列表
 		ConcurrentHashMap<String,MyQueue> QueueList = new ConcurrentHashMap<>();
 		//消息列表
 		MyQueue myQueue = new MyQueue();
-		//List<Message> MessageList = new LinkedList<Message>();
-		
-		
 		JSONArray Queue_List = JSONArray.fromObject(json);
-		//System.out.println(Queue_List);
 		Iterator Queue_List_iterator = Queue_List.iterator();   
 		while(Queue_List_iterator.hasNext()) {
 			JSONObject Queue = (JSONObject) Queue_List_iterator.next();
@@ -258,7 +236,20 @@ public class PersistenceUtil {
 		}
 		return set;
 	}
-	
+	public static JSONArray persistenceConsumer(List<IpNode> consumerAddress) {
+		JSONArray Consumer_List = new JSONArray();
+		Iterator<IpNode> it = consumerAddress.iterator();
+		while (it.hasNext()) {
+			IpNode ipNode = it.next();
+			String ip = ipNode.getIp();
+			int port = ipNode.getPort();
+			JSONObject IpNode_JSON = new JSONObject();
+			IpNode_JSON.put("ip", ip);
+			IpNode_JSON.put("port", port);
+			Consumer_List.add(IpNode_JSON);
+		}
+		return Consumer_List;
+	}
 	public static void main(String[] args) throws IOException {
 		//测试用例1
 		ConcurrentHashMap<String,MyQueue> queueList1 = new ConcurrentHashMap<String, MyQueue>();
@@ -275,96 +266,43 @@ public class PersistenceUtil {
 			}
 			queueList1.put((i)+"", queue);
 			}
-		System.out.println("将对象转为json存入文件："+queueList1);
-		PersistenceUtil.Export(PersistenceUtil.persistence(queueList1),"D://result.json");
-	    //System.out.println(Persistence.Import("F://result.json"));
-		ConcurrentHashMap<String,MyQueue> List = PersistenceUtil.Extraction(PersistenceUtil.Import("D://result.json"));
-		
+		System.out.println("将对象转为json存入文件...");
+		String path = PersistenceUtil.class.getResource("").getPath().toString().substring(1);
+		File file = new File(path);
+		String newPath1 = file.getParentFile().getParent()+"\\QueueList.json";
+		String newPath2 = file.getParentFile().getParent()+"\\ConsumerAddress.json";
+		PersistenceUtil.Export(PersistenceUtil.persistenceQueue(queueList1),newPath1);
+		ConcurrentHashMap<String,MyQueue> List = PersistenceUtil.Extraction(PersistenceUtil.Import(newPath1));	
 		Iterator iterator = List.keySet().iterator();   
 		while (iterator.hasNext()) {
 			String key = (String) iterator.next(); 
-	        //System.out.println("key:"+key);
-	        
 	        MyQueue myqueue = List.get(key);
-
-	        LinkedList<Message> list = (LinkedList<Message>) myqueue.getReverseAll();
-	        
+	        LinkedList<Message> list = (LinkedList<Message>) myqueue.getReverseAll();        
 	        //遍历每个消息队列，获得消息
 	        Iterator<Message> queue_iterator = list.iterator();
 	        while(queue_iterator.hasNext()) {
 	        	//得到每个消息
-	        	Message message = queue_iterator.next();
-	        	
+	        	Message message = queue_iterator.next();        	
 	        	int number = message.getNum();
 	        	String mes = message.getMessage();
 	        	int type = message.getType();
-	        	Topic topic = message.getTopic();
-	        	
+	        	Topic topic = message.getTopic();        	
 	        	//测试用
 	        	System.out.println("消息序号："+number);
 	        	System.out.println("消息："+mes);
 	        	System.out.println("消息类型："+type);
-	        	System.out.println("消息主题："+topic);
-	        	//System.out.println(topic.getQueue());
-	        	
+	        	System.out.println("消息主题："+topic);       	
 	        	//得到每个消息的主题信息
 	        	String QueueName = topic.getTopicName();
 	        	List<Integer> QueueId = topic.getQueue();
-	        	List<IpNode> Consumer = topic.getConsumer();
-	        	
+	        	List<IpNode> Consumer = topic.getConsumer();  	
 	        	//测试用
-	        	//System.out.println("该消息的主题所在的队列Id："+QueueId);
+	        	System.out.println("该消息的主题所在的队列Id："+QueueId);
 	        	System.out.println("该消息的主题的名称："+QueueName);
 	        	System.out.println("该消息的主题的consumer："+Consumer);
-	        	
-	        	//得到每个消息的主题的Ip列表
-	        	//Iterator<Integer> QueueId_iterator = QueueId.iterator();
-//	        	JSONArray QueueId_List = new JSONArray();
-//	        	while(QueueId_iterator.hasNext()) {
-//	        		Integer integer = QueueId_iterator.next();
-//	        		QueueId_List.add(integer);
-//	        		System.out.println("Ip列表："+integer);
-	        	//}
 		}
-//		Iterator i2 = queueList1.keySet().iterator();
-//		
-//		boolean flag = true;
-//		while (i1.hasNext()&&i2.hasNext()){    
-//	        String key1 = (String) i1.next(); 
-//	        String key2 = (String) i2.next();
-//	        if (key1.equals(key2)) {
-//				MyQueue q1 = List.get(key1);
-//				MyQueue q2 = queueList1.get(key2);
-//				
-//				LinkedList<Message> m1 = (LinkedList<Message>) q1.getReverseAll();
-//				LinkedList<Message> m2 = (LinkedList<Message>) q2.getReverseAll();
-//		        
-//		        Iterator<Message> mi1 = m1.iterator();
-//		        Iterator<Message> mi2 = m2.iterator();
-//		        boolean f = true;
-//		        while(mi1.hasNext()&&mi2.hasNext()) {
-//		        	f = Compare(mi1.next(), mi2.next());
-//		        }
-//		        if (!f) {
-//					flag = false;
-//				}
-//	        }
-//	        else {
-//	        	flag = false;
-//	        }
-//		}
-//		System.out.println("是否相同："+flag);
+
 	}
-	
-//	public static boolean Compare(Message oldm,Message newm) {
-//		if(oldm.getNum()==newm.getNum()&&oldm.getType()==newm.getType()&&oldm.getMessage().equals(newm.getMessage())) {
-//			Topic oldt = oldm.getTopic();
-//			Topic newt = newm.getTopic();
-//			if(oldt.getConsumer().equals(newt.getConsumer()) && oldt.getQueueName().equals(newt.getQueueName()) && oldt.getQueue().equals(newt.getQueue()))
-//				return true;
-//		}
-//		return false;
-//	}
 }
 }
 
