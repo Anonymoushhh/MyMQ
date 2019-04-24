@@ -56,8 +56,10 @@ public class Slave {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-            		if(s.broker!=null)
-                		s.broker.getAll();
+            		if(s.broker!=null) {
+            			s.broker.getAll();
+            			System.out.println();
+            		}
             	}
             };
         }.start();

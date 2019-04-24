@@ -60,7 +60,6 @@ public class SyscProducerFactory {
 					return null;
 			}
 		} catch (IOException e) {
-//			e.printStackTrace();
 			System.out.println("BrokerŒ¥…œœﬂ£°");
 		}
 		return null;

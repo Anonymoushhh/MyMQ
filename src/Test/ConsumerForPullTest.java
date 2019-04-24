@@ -6,7 +6,7 @@ import Common.IpNode;
 import Common.Message;
 import Consumer.ConsumerFactory;
 
-public class Consumer1 {
+public class ConsumerForPullTest {
 
 	public static void main(String[] args) {
 		IpNode ipNode3 = new IpNode("127.0.0.1", 81);

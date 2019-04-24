@@ -31,8 +31,7 @@ public class ConsumerFactory {
             	try {
 					new Server(port,defaultRequestProcessor,consumerResponeProcessor);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("端口已被占用！");
 				}
                 };
 		}.start();

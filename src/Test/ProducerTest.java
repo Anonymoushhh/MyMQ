@@ -1,7 +1,4 @@
 package Test;
-
-
-
 import Common.IpNode;
 import Common.Message;
 import Common.Topic;
@@ -31,7 +28,7 @@ public class ProducerTest {
 		        topic2.addConsumer(new IpNode("127.0.0.1", 8888));
 				int num2 = Sequence.getSequence();//获得全局唯一的序号
 				Message msg2 = new Message("message"+num2,topic2, num2);//定义消息，指定消息内容，主题和序号
-				DelaySyscProducerFactory.setDelay_Time(2000);//设置延时发送时间
+				DelaySyscProducerFactory.setDelay_Time(1000);//设置延时发送时间
 				String string2 = DelaySyscProducerFactory.Send(msg2, "127.0.0.1", 81);//延时发送消息
 				System.out.println(string2);
 				
