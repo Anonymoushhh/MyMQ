@@ -1,5 +1,4 @@
-#
-MyMQ文档与使用指南
+#MyMQ文档与使用指南
 ###MyMQ简介
 &emsp;&emsp;MyMQ是一个简单版的消息队列，它的架构主要分为三部分：Producer，Broker和Consumer。
 &emsp;&emsp;生产者支持同步发送消息和发送单向消息，生产者发送消息时需先通过一个消息主题向Broker申请队列，Broker根据自己的负载情况返回给生产者可用队列号，生产者将队列号添加到topic中，并用该消息主题发送消息；
