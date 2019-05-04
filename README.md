@@ -1,13 +1,18 @@
-#MyMQ文档与使用指南
-###MyMQ简介
+# MyMQ文档与使用指南
+### MyMQ简介
 &emsp;&emsp;MyMQ是一个简单版的消息队列，它的架构主要分为三部分：Producer，Broker和Consumer。
+
 &emsp;&emsp;生产者支持同步发送消息和发送单向消息，生产者发送消息时需先通过一个消息主题向Broker申请队列，Broker根据自己的负载情况返回给生产者可用队列号，生产者将队列号添加到topic中，并用该消息主题发送消息；
+
 &emsp;&emsp;Broker中有许多队列，每个队列中消息顺序一定，队列对消息主题Topic可以是多对多，一对多，多对一的关系，具体如何使用由使用者决定。Broker支持负载均衡和消息过滤功能，对消费者提供Push和Pull两种模式。Broker还实现了主从同步（Slave节点）和队列持久化存储与恢复来保证消息的可靠性。若消息由于网络原因发送失败时会重试，默认为16次，发送成功（返回ACK）或返回失败消息后才会发送下一条消息，以此来保证消息的有序性；
+
 &emsp;&emsp;消费者可以同步获取消息，延时获取消息，支持Push和Pull两种模式。
+
 &emsp;&emsp;Producer，Broker和Consumer三者支持单机和分布式环境，通过NIO的Socket通信。
+
 &emsp;&emsp;Producer，Broker和Consumer三者均支持横向扩展，增加新的机器对旧的服务没有任何影响，保证了高可用性。
 
-###MyMQ架构
+### MyMQ架构
 
 + Broker
 + Broker.java
@@ -68,8 +73,9 @@
 
 &emsp;&emsp;工具包，定义了一些通用的工具类。
 
-###MyMQ使用指南
-####Broker.Broker
+### MyMQ使用指南
+
+#### Broker.Broker
 &emsp;&emsp;Broker为消息队列服务器节点，提供的服务有：消息存储，消息分发（Push模式与Pull模式），失败重试机制，消息过滤，负载均衡，死信队列，主从备份，持久化存储（同步或异步刷盘）与冗机恢复，横向扩展等。
 
 Method|Description
@@ -95,27 +101,32 @@ public List<Integer> choiceQueue(int queueNum)|当生产者请求队列时，根
 public synchronized void add(int queueNumber,Message value)|将消息添加到某个队列中
 public synchronized List<Message> poll(int num)|每个队列出队num个元素
 public HashMap<IpNode, List<Message>> filter(List<IpNode> index,List<Message> list)|根据消费者信息过滤消息
-####Broker.BrokerResponseProcessor
+	
+#### Broker.BrokerResponseProcessor
+	
 &emsp;&emsp;该类实现了ResponseProcessor接口，为Broker制定了特殊的消息响应机制。
 
 Method|Description
 ---|:--:
 public void processorRespone(final SelectionKey key,Broker broker)|根据不同的消息类型做出不同的反应
 private void addToBroker(Message msg,Broker broker)|将消息添加到Broker
-####Broker.Filter
+
+#### Broker.Filter
 &emsp;&emsp;消息过滤器，将消息按照消费者地址分类。
 
 Method|Description
 ---|:--:
 public Filter(List<IpNode> index)|构造方法，输入为全部消费者地址列表
 public HashMap<IpNode, List<Message>> filter(List<Message> list)|将Message按照地址分类
-####Broker.LoadBalancer
+	
+#### Broker.LoadBalancer
 &emsp;&emsp;负载均衡器，用于为生产者选择一个合适的消息队列。
 
 Method|Description
 ---|:--:
 public static synchronized List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,int queueNum)|找到前queueNum小的队列号
-####Broker.MyQueue
+
+#### Broker.MyQueue
 &emsp;&emsp;消息队列类，保证了消息的顺序性。
 
 Method|Description
@@ -127,20 +138,23 @@ public Message getTail()|返回队尾元素
 public int size()|返回队列大小
 public void getAll()|打印队列元素
 public List<Message> getReverseAll()|逆序列
-####Broker.Slave
+
+#### Broker.Slave
 &emsp;&emsp;备份节点类，用于Slave的同步或异步备份。
 
 Method|Description
 ---|:--:
 public Slave(int port1,int port2)|构造方法，port1为slave监听端口，port2为slaveBroker监听端口
 public void Sync(Synchronizer synchronizer)|同步函数，输入为同步器
-####Broker.SlaveResponseProcessor
+
+#### Broker.SlaveResponseProcessor
 &emsp;&emsp;用于指定备份节点的特殊消息响应机制。
 
 Method|Description
 ---|:--:
 public void processorRespone(final SelectionKey key,Slave slave)|根据Slave服务器的消息类型做出不同反应
-####Broker.Synchronizer
+
+#### Broker.Synchronizer
 &emsp;&emsp;同步器，用于Broker主从节点的同步。
 
 Method|Description
@@ -148,7 +162,8 @@ Method|Description
 public Synchronizer(ConcurrentHashMap<String, MyQueue> queueList, List<IpNode> index)|构造方法，输入为队列列表和消费者地址集合
 public ConcurrentHashMap<String,MyQueue> getQueueList()|返回队列集合
 public List<IpNode> getIndex()|返回消费者地址
-####Common.IpNode
+
+#### Common.IpNode
 &emsp;&emsp;定义一个网络地址。
 
 Method|Description
@@ -158,7 +173,8 @@ public String getIp()|返回ip
 public int getPort()|返回端口
 public void setIp(String ip)|设置ip
 public void setPort(int port)|设置端口
-####Common.Message
+
+#### Common.Message
 &emsp;&emsp;定义了传输的消息结构。
 
 Method|Description
@@ -173,14 +189,16 @@ public Topic getTopic()|返回消息主题
 public void setTopic(Topic topic)|设置消息主题
 public int getNum()|返回消息序号
 public void setNum(int num)|设置消息序号
-####Common.MessageType
+
+#### Common.MessageType
 &emsp;&emsp;定义了消息类型。
 
 Method|Description
 ---|:--:
 private static Set<Integer> getSet()|返回消息类型集合
 public static boolean contains(Integer i)|判断类型是否合法
-####Common.PullMessage
+
+#### Common.PullMessage
 &emsp;&emsp;一种特殊的消息，用于消费者向Broker拉取消息。
 
 Method|Description
@@ -190,7 +208,8 @@ public IpNode getIpNode()|获得地址信息
 public int getNum()|获得消息序号
 public int getType()|获得消息类型
 public String getMessage()|获得消息内容
-####Common.RegisterMessage
+
+#### Common.RegisterMessage
 &emsp;&emsp;一种特殊的消息，用与消费者向Broker注册。
 
 Method|Description
@@ -200,7 +219,8 @@ public IpNode getIpNode()|返回地址信息
 public int getNum()|返回消息序号
 public int getType()|返回消息类型
 public String getMessage()|返回消息内容
-####Common.Topic
+
+#### Common.Topic
 &emsp;&emsp;消息主题。
 
 Method|Description
@@ -216,7 +236,8 @@ public void addConsumer(IpNode ipnode)|添加消费者
 public void deleteConsumer(IpNode ipnode)|删除消费者
 public void addQueueId(int i)|添加队列
 public int getQueueNum()|获得请求队列数
-####Consumer.ConsumerFactory
+
+#### Consumer.ConsumerFactory
 &emsp;&emsp;消费者工厂类，用于创建消费者。
 
 Method|Description
@@ -227,13 +248,15 @@ public static void createConsumer(IpNode ipNode1,IpNode ipNode2)|向Broker申请
 public static ConcurrentLinkedQueue<Message> getList(int port)|返回某个在某个端口监听的消息队列
 public static Message getMessage(int port)|返回在某个端口的消息
 public static void Pull(IpNode ipNode1,IpNode ipNode2)|请求拉取消息
-####Consumer.ConsumerResponeProcessor
+
+#### Consumer.ConsumerResponeProcessor
 &emsp;&emsp;为消费者指定特殊的消息响应机制。
 
 Method|Description
 ---|:--:
 public void processorRespone(final SelectionKey key,int port)|消费者对消息的监听处理方法
-####Producer.SyscProducerFactory
+
+#### Producer.SyscProducerFactory
 &emsp;&emsp;同步生产者工厂。
 
 Method|Description
@@ -242,16 +265,19 @@ public static void setReTry_Time(int reTry_Time)|设置重试次数
 private static String SendQueueRegister(Message msg,String ip,int port)|发送队列注册消息，失败返回null，成功返回 RequestQueue ACK
 public static Topic RequestQueue(Topic topic,String ip,int port)|请求申请队列，输入为一个topic和目的地址，里面包含请求的队列个数
 public static String Send(Message msg,String ip,int port)|发送消息
-####Producer.DelaySyscProducerFactory
+
+#### Producer.DelaySyscProducerFactory
 &emsp;&emsp;延时生产者工厂。
 
 Method|Description
 ---|:--:
 public static void setDelay_Time(int delay_Time)|设置延时发送时间，其余方法同上
-####Producer.UndirectionalProducerFactory
+
+#### Producer.UndirectionalProducerFactory
 &emsp;&emsp;单向消息生产者工厂。
 &emsp;&emsp;API同SyscProducerFactory。
-####Utils.Client
+
+#### Utils.Client
 &emsp;&emsp;NIO通信模型客户端类，用于发送消息和接受回复。
 
 Method|Description
@@ -263,25 +289,29 @@ public void Send(String msg)|单向发送字符串
 public String SyscSend(Message msg)|同步发送消息对象
 public void Send(Message msg)|单向发送消息对象
 public String receive()|接受消息
-####Utils.DefaultRequestProcessor
+
+#### Utils.DefaultRequestProcessor
 &emsp;&emsp;默认的请求接收响应类。
 
 Method|Description
 ---|:--:
 public void processorRequest(final SelectionKey key,Server server)|默认的请求处理方法
-####Utils.DefaultResponeProcessor
+
+#### Utils.DefaultResponeProcessor
 &emsp;&emsp;默认的请求回复响应类。
 
 Method|Description
 ---|:--:
 public void processorRespone(final SelectionKey key)|默认的请求响应方法
-####Utils.RequestProcessor接口
+
+#### Utils.RequestProcessor接口
 &emsp;&emsp;请求接收响应接口。
 
 Method|Description
 ---|:--:
 public void processorRequest(final SelectionKey key,Server server)|消息处理方法
-####Utils.ResponseProcessor接口
+
+#### Utils.ResponseProcessor接口
 &emsp;&emsp;请求回复响应接口。
 
 Method|Description
@@ -290,20 +320,23 @@ default void processorRespone(final SelectionKey key)|默认空实现，为实�
 default void processorRespone(final SelectionKey key,Broker broker)|默认空实现，为实现接口的类服务
 default void processorRespone(final SelectionKey key,int port)|默认空实现，为实现接口的类服务
 default void processorRespone(final SelectionKey key,Slave slave)|默认空实现，为实现接口的类服务
-####Utils.SequenceUtil
+
+#### Utils.SequenceUtil
 &emsp;&emsp;生成唯一序列号的工具类（单机唯一）。
 
 Method|Description
 ---|:--:
 public synchronized int getSequence()|返回一个唯一的序列化（单机环境下唯一）
-####Utils.SerializeUtil
+
+#### Utils.SerializeUtil
 &emsp;&emsp;序列化工具类。
 
 Method|Description
 ---|:--:
 public static String serialize(Object obj)|对象序列化为字符串
 public static Object serializeToObject(String str)|字符串反序列化为对象
-####Utils.Server
+
+#### Utils.Server
 &emsp;&emsp;NIO通信模型服务器类，在某个端口上监听消息。
 
 Method|Description
@@ -315,9 +348,9 @@ public void addWriteQueen(SelectionKey key)|添加SelectionKey到队列
 void init(int port)|在某个端口上创建Server服务，初始化Server
 void start(int port)|在某个端口上开始监听
 
-###使用示例
+### 使用示例
 
-####Producer
+#### Producer
 ```java
 SequenceUtil Sequence = new SequenceUtil();//新建一个序列号工具类实例
 //创建一个消息主题Topic（包含Topic名称和请求队列个数）向Broker请求分配队列，
@@ -348,7 +381,7 @@ int num3 = Sequence.getSequence();//获得全局唯一的序号
 Message msg3 = new Message("message"+num3,topic3, num3);//定义消息，指定消息内容，主题和序号
 UnidirectionalProducerFactory.Send(msg3, "127.0.0.1", 81);
 ```
-####Broker
+#### Broker
 ```java
 //创建Broker(主从复制，push模式)
 try {
@@ -386,7 +419,7 @@ try {
 			e.printStackTrace();
 	}
 ```
-Consumer
+#### Consumer
 ```
 //创建Consumer（Push模式）
 		IpNode ipNode1 = new IpNode("127.0.0.1", 81);
@@ -428,9 +461,9 @@ Consumer
 ```
 
 
-###主要架构与功能实现详解
+### 主要架构与功能实现详解
 
-####消息结构
+#### 消息结构
 ```
 public class Message implements Serializable{
 
@@ -459,7 +492,7 @@ public class Message implements Serializable{
 ```
 &emsp;&emsp;该类同样实现了序列化接口，主要用于记录消息主题名称，请求队列数，请求队列号和消费者地址。当用户首次定义一个Topic时，需要向Broker申请分配可用的消息队列号，之后将可用的队列号存储进Topic中，以后使用该Topic时就无需申请队列。
 
-####消息存储
+#### 消息存储
 ```
 public class MyQueue implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -468,7 +501,7 @@ public class MyQueue implements Serializable{
 ```
 &emsp;&emsp;MyQueue定义了消息存储队列，它的实现是一个同步的双向队列，一个Broker中可以同时存在一个或多个队列。
 
-####消息过滤
+#### 消息过滤
 ```
 public HashMap<IpNode, List<Message>> filter(List<Message> list) {
 		//将Message按照分发地址分类
@@ -498,7 +531,7 @@ public HashMap<IpNode, List<Message>> filter(List<Message> list) {
 ```
 &emsp;&emsp;过滤器的主要作用就是将要发送的消息按照消费者地址分类，一个消息可能有一个或多个消费者。
 
-####消息分发（Push模式与Pull模式）
+#### 消息分发（Push模式与Pull模式）
 ```
 //为消费者推送消息
 	private void pushMessage() {
@@ -549,7 +582,7 @@ public HashMap<IpNode, List<Message>> filter(List<Message> list) {
 ```
 &emsp;&emsp;push模式启动一个线程，每次push过程是所有队列出队一个元素，使用过滤器将所有消息分类，发送给相应的消费者，如果发送失败则重试一定次数（默认16次），次数达到上限后依然失败的话会进入死信队列，并告知相应的生产者。
 
-####负载均衡
+#### 负载均衡
 ```
 public static List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,int queueNum){
 		//此时queueList的size一定大于queueNum
@@ -571,7 +604,7 @@ public static List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,
 
 &emsp;&emsp;负载均衡器提供一个负载均衡的方法，遍历队列找到前queueNum小的队列号。
 
-####主从备份
+#### 主从备份
 ```
 //slave同步
         new Thread(){
@@ -600,7 +633,7 @@ public static List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,
 ```
 &emsp;&emsp;Broker会在init方法中创建一个线程。如果创建带Slave节点备份的消息队列的话,该线程会不停的向Slave节点同步消息，同步不可保证强一致性。
 
-####持久化存储（同步或异步刷盘）与冗机恢复
+#### 持久化存储（同步或异步刷盘）与冗机恢复
 
 ```
 //持久化
@@ -645,7 +678,7 @@ public static List<Integer> balance(ConcurrentHashMap<String,MyQueue> queueList,
 			addConsumer(ipNode);
 	}
 ```
-####生产者工厂(这里以延时同步工厂为例)
+#### 生产者工厂(这里以延时同步工厂为例)
 ```
 private static ConcurrentHashMap<IpNode, Boolean> requestMap= new ConcurrentHashMap<IpNode, Boolean>();
 	private static int reTry_Time = 16;
@@ -728,7 +761,7 @@ private static String SendQueueRegister(Message msg,String ip,int port) {//未�
 	}
 ```
 &emsp;&emsp;若发送成功返回值为消息号+空格+ACK，发送失败返回值为null。
-####消费者工厂
+#### 消费者工厂
 ```
 	private static ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Message>> map = new ConcurrentHashMap<Integer,ConcurrentLinkedQueue<Message>>();
 ```
